@@ -47,8 +47,8 @@ window.CONFIG = window.CONFIG || {
     }
 };
 
-// Também exportar como const CONFIG para compatibilidade
-const CONFIG = window.CONFIG;
+// Tornar CONFIG acessível globalmente para todos os scripts
+var CONFIG = window.CONFIG;
 
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
