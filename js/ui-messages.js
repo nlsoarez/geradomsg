@@ -75,6 +75,13 @@ async function gerarMensagem() {
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
 
+    // ENVIO DE SMS (se habilitado)
+    const dadosSMS = coletarDadosFormulario('rompimento');
+    const resultSMS = await sendSMSNotification('rompimento', dadosSMS);
+    if (resultSMS) {
+        showSMSFeedback(resultSMS);
+    }
+
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('rompimento', tipoStatus);
 }
@@ -254,6 +261,13 @@ async function gerarMensagemManobra() {
 
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
+
+    // ENVIO DE SMS (se habilitado)
+    const dadosSMS = coletarDadosFormulario('manobra');
+    const resultSMS = await sendSMSNotification('manobra', dadosSMS);
+    if (resultSMS) {
+        showSMSFeedback(resultSMS);
+    }
 
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('manobra', tipoStatus);
