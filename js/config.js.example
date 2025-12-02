@@ -1,0 +1,34 @@
+/**
+ * Configurações da aplicação - EXEMPLO
+ *
+ * INSTRUÇÕES:
+ * 1. Copie este arquivo para config.js
+ * 2. Substitua os valores com suas credenciais reais do JSONBin.io
+ * 3. NUNCA faça commit do arquivo config.js (ele está no .gitignore)
+ */
+
+const CONFIG = {
+    // Configuração do JSONBin.io
+    jsonbin: {
+        binId: 'SEU_BIN_ID_AQUI',
+        accessKey: 'SUA_ACCESS_KEY_AQUI',
+        baseUrl: 'https://api.jsonbin.io/v3/b'
+    },
+
+    // Configurações de limpeza automática
+    cleanup: {
+        hoursEncerrado: 3,  // Horas para excluir incidente encerrado
+        hoursInativo: 24    // Horas para excluir incidente sem atualização
+    },
+
+    // Limites de escalonamento
+    escalonamento: {
+        HFC: 10,
+        GPON: 300
+    }
+};
+
+// Exportar configuração
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CONFIG;
+}
