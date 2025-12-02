@@ -61,12 +61,18 @@ cd teste
 
 ### 2. Configure as credenciais
 
+**Para desenvolvimento local:**
 ```bash
 # Copie o arquivo de exemplo
 cp js/config.js.example js/config.js
 
-# Edite js/config.js com suas credenciais do JSONBin.io
+# Edite js/config.js com suas credenciais do JSONBin.io e Twilio
 ```
+
+**Para deploy (GitHub Pages, etc):**
+- Use o arquivo `js/config.production.js` (já está configurado)
+- Ou edite `config.production.js` com suas credenciais antes do deploy
+- Este arquivo **pode ser commitado** se você não se importar com a exposição das credenciais
 
 ### 3. Obtenha credenciais do JSONBin.io
 
