@@ -33,7 +33,11 @@ window.CONFIG = window.CONFIG || {
         twilio: {
             accountSid: 'ACc4b98b578b3d2825c7819a0e2c97f1a3',
             authToken: '84925fad0ea3419800714418b4b39f23',
-            phoneFrom: '+13417585645'
+            phoneFrom: '+13417585645',
+            // IMPORTANTE: Adicione aqui a URL da sua Twilio Function para contornar CORS
+            // Exemplo: 'https://sms-sender-1234-dev.twil.io/send-sms'
+            // Veja instruções em TWILIO_SETUP.md
+            functionUrl: ''
         },
 
         recipients: [

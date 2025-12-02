@@ -146,12 +146,21 @@ class SMSService {
      * Envia SMS via Twilio
      */
     async sendViaTwilio(phoneNumber, message) {
-        const { accountSid, authToken, phoneFrom } = this.config.twilio;
+        const { accountSid, authToken, phoneFrom, functionUrl } = this.config.twilio;
 
         // Validar credenciais
         if (!accountSid || accountSid === 'SEU_ACCOUNT_SID_AQUI') {
             throw new Error('Credenciais do Twilio não configuradas');
         }
+
+        // Se functionUrl está configurada, usar Twilio Function (recomendado)
+        if (functionUrl && functionUrl.trim() !== '') {
+            return await this.sendViaTwilioFunction(phoneNumber, message, functionUrl);
+        }
+
+        // Caso contrário, tentar chamada direta (pode falhar por CORS)
+        console.warn('⚠️ Usando chamada direta à API Twilio. Isso pode falhar por CORS.');
+        console.warn('📚 Veja TWILIO_SETUP.md para configurar Twilio Function');
 
         // URL da API Twilio
         const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
@@ -186,6 +195,48 @@ class SMSService {
             return result;
         } catch (error) {
             console.error('Erro Twilio:', error);
+            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                throw new Error('Erro de CORS. Configure Twilio Function (veja TWILIO_SETUP.md)');
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Envia SMS via Twilio Function (serverless - contorna CORS)
+     */
+    async sendViaTwilioFunction(phoneNumber, message, functionUrl) {
+        console.log('📱 Enviando SMS via Twilio Function:', functionUrl);
+
+        try {
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    to: phoneNumber,
+                    body: message
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao enviar SMS via Function');
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Erro desconhecido');
+            }
+
+            return {
+                sid: result.sid,
+                status: 'sent'
+            };
+        } catch (error) {
+            console.error('Erro Twilio Function:', error);
             throw error;
         }
     }
