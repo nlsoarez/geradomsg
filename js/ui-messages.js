@@ -75,6 +75,17 @@ async function gerarMensagem() {
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
 
+    // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
+    const dadosSMS = coletarDadosFormulario('rompimento');
+    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologia, impactoValor);
+
+    if (shouldAutoSend || smsService.isEnabled()) {
+        const resultSMS = await sendSMSNotification('rompimento', dadosSMS);
+        if (resultSMS) {
+            showSMSFeedback(resultSMS);
+        }
+    }
+
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('rompimento', tipoStatus);
 }
@@ -255,8 +266,49 @@ async function gerarMensagemManobra() {
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
 
+    // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
+    const dadosSMS = coletarDadosFormulario('manobra');
+    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologiaManobra, impactoManobraValor);
+
+    if (shouldAutoSend || smsService.isEnabled()) {
+        const resultSMS = await sendSMSNotification('manobra', dadosSMS);
+        if (resultSMS) {
+            showSMSFeedback(resultSMS);
+        }
+    }
+
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('manobra', tipoStatus);
+}
+
+// ===== VERIFICAÇÃO DE ENVIO AUTOMÁTICO =====
+
+/**
+ * Verifica se deve enviar SMS automaticamente baseado no impacto
+ */
+function verificarEnvioAutomaticoSMS(topologia, impacto) {
+    // Se configuração autoSendOnHighImpact não estiver ativa, retorna false
+    if (!CONFIG.sms.autoSendOnHighImpact) {
+        return false;
+    }
+
+    const numero = parseInt(impacto);
+    if (isNaN(numero)) {
+        return false;
+    }
+
+    const limites = CONFIG.escalonamento;
+
+    // Verifica se atinge os limites de escalonamento
+    if (topologia === 'HFC' && numero >= limites.HFC) {
+        console.log(`🚨 Envio automático de SMS: Impacto HFC (${numero}) ≥ ${limites.HFC}`);
+        return true;
+    } else if (topologia === 'GPON' && numero >= limites.GPON) {
+        console.log(`🚨 Envio automático de SMS: Impacto GPON (${numero}) ≥ ${limites.GPON}`);
+        return true;
+    }
+
+    return false;
 }
 
 // ===== SALVAMENTO AUTOMÁTICO =====
