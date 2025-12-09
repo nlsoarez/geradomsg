@@ -32,11 +32,15 @@ window.CONFIG = window.CONFIG || {
 
         telegram: {
             botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
-            // Lista de Chat IDs que receberão as notificações
+
+            // Lista de Chat IDs que receberão ALERTAS CURTOS (quando impacto alto)
             chatIds: [
                 '1834260126',  // Nelson Soares
                 '5963809768'   // Kelly Lira
-            ]
+            ],
+
+            // Chat ID do grupo que receberá MENSAGEM COMPLETA (sempre)
+            groupChatId: '-1003350697831'  // Grupo: Cop Rede
         },
 
         template: {
@@ -51,11 +55,20 @@ var CONFIG = window.CONFIG;
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
 console.log('📱 Notificação Telegram:', CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA');
+
+// Alertas individuais
 if (CONFIG.notification.telegram.chatIds && CONFIG.notification.telegram.chatIds.length > 0) {
-    console.log(`💬 ${CONFIG.notification.telegram.chatIds.length} destinatário(s) configurado(s)`);
+    console.log(`👤 Alertas individuais: ${CONFIG.notification.telegram.chatIds.length} destinatário(s)`);
     CONFIG.notification.telegram.chatIds.forEach((id, index) => {
         console.log(`  ${index + 1}. Chat ID: ${id}`);
     });
 } else {
-    console.warn('⚠️ Configure o bot do Telegram em js/config-inline.js');
+    console.warn('⚠️ Nenhum destinatário individual configurado');
+}
+
+// Grupo
+if (CONFIG.notification.telegram.groupChatId) {
+    console.log(`👥 Grupo configurado: ${CONFIG.notification.telegram.groupChatId}`);
+} else {
+    console.warn('⚠️ Grupo não configurado');
 }

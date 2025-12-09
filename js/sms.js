@@ -193,6 +193,52 @@ class NotificationService {
     }
 
     /**
+     * Envia mensagem COMPLETA para o grupo do Telegram
+     * @param {string} fullMessage - Mensagem completa formatada
+     * @returns {Promise<Object>} Resultado do envio
+     */
+    async sendFullMessageToGroup(fullMessage) {
+        const { groupChatId, botToken } = this.config.telegram;
+
+        // Verificar se grupo está configurado
+        if (!groupChatId || groupChatId.trim() === '') {
+            console.log('⚠️ Grupo não configurado. Mensagem não enviada ao grupo.');
+            return {
+                success: false,
+                message: 'Grupo não configurado'
+            };
+        }
+
+        if (!botToken || botToken.trim() === '') {
+            console.error('❌ Token do bot não configurado');
+            return {
+                success: false,
+                message: 'Token do bot não configurado'
+            };
+        }
+
+        console.log('📢 Enviando mensagem completa para o grupo...');
+
+        try {
+            const result = await this.sendViaTelegram(groupChatId, fullMessage);
+            console.log(`✅ Mensagem completa enviada para o grupo ${groupChatId}`);
+
+            return {
+                success: true,
+                message: 'Mensagem enviada ao grupo',
+                result: result
+            };
+        } catch (error) {
+            console.error(`❌ Erro ao enviar mensagem para o grupo:`, error.message);
+            return {
+                success: false,
+                message: error.message,
+                error: error
+            };
+        }
+    }
+
+    /**
      * Testa o envio de notificação
      */
     async testNotification() {
