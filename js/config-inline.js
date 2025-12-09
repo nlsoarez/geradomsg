@@ -32,7 +32,11 @@ window.CONFIG = window.CONFIG || {
 
         telegram: {
             botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
-            chatId: '1834260126'
+            // Lista de Chat IDs que receberão as notificações
+            chatIds: [
+                '1834260126'  // Nelson Soares
+                // Adicione mais Chat IDs aqui quando necessário
+            ]
         },
 
         template: {
@@ -47,8 +51,11 @@ var CONFIG = window.CONFIG;
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
 console.log('📱 Notificação Telegram:', CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA');
-if (CONFIG.notification.telegram.chatId) {
-    console.log('💬 Chat ID configurado:', CONFIG.notification.telegram.chatId);
+if (CONFIG.notification.telegram.chatIds && CONFIG.notification.telegram.chatIds.length > 0) {
+    console.log(`💬 ${CONFIG.notification.telegram.chatIds.length} destinatário(s) configurado(s)`);
+    CONFIG.notification.telegram.chatIds.forEach((id, index) => {
+        console.log(`  ${index + 1}. Chat ID: ${id}`);
+    });
 } else {
     console.warn('⚠️ Configure o bot do Telegram em js/config-inline.js');
 }

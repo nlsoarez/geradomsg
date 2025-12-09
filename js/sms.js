@@ -12,7 +12,10 @@ class NotificationService {
      * Verifica se o serviço de notificação está habilitado
      */
     isEnabled() {
-        return this.enabled && this.config.telegram.botToken && this.config.telegram.chatId;
+        return this.enabled &&
+               this.config.telegram.botToken &&
+               this.config.telegram.chatIds &&
+               this.config.telegram.chatIds.length > 0;
     }
 
     /**
@@ -65,10 +68,10 @@ class NotificationService {
     }
 
     /**
-     * Envia mensagem via Telegram Bot API
+     * Envia mensagem via Telegram Bot API para um chat específico
      */
-    async sendViaTelegram(message) {
-        const { botToken, chatId } = this.config.telegram;
+    async sendViaTelegram(chatId, message) {
+        const { botToken } = this.config.telegram;
 
         // Validar configurações
         if (!botToken || botToken.trim() === '') {
@@ -89,7 +92,7 @@ class NotificationService {
             parse_mode: 'Markdown'
         };
 
-        console.log('📱 Enviando notificação via Telegram...');
+        console.log(`📱 Enviando notificação via Telegram para chat ${chatId}...`);
 
         try {
             const response = await fetch(url, {
@@ -125,7 +128,7 @@ class NotificationService {
     }
 
     /**
-     * Envia notificação
+     * Envia notificação para todos os destinatários configurados
      */
     async sendNotification(tipo, dados) {
         if (!this.isEnabled()) {
@@ -137,15 +140,43 @@ class NotificationService {
         }
 
         const message = this.buildMessage(tipo, dados);
+        const { chatIds } = this.config.telegram;
+        const results = [];
+        let successCount = 0;
+        let errorCount = 0;
 
         try {
             if (this.config.provider === 'telegram') {
-                const result = await this.sendViaTelegram(message);
-                this.updateStats(true);
+                // Enviar para todos os chat IDs configurados
+                for (const chatId of chatIds) {
+                    try {
+                        const result = await this.sendViaTelegram(chatId, message);
+                        results.push({
+                            chatId,
+                            success: true,
+                            result
+                        });
+                        successCount++;
+                        console.log(`✅ Mensagem enviada para chat ${chatId}`);
+                    } catch (error) {
+                        results.push({
+                            chatId,
+                            success: false,
+                            error: error.message
+                        });
+                        errorCount++;
+                        console.error(`❌ Erro ao enviar para chat ${chatId}:`, error.message);
+                    }
+                }
+
+                this.updateStats(successCount > 0);
+
                 return {
-                    success: true,
-                    message: 'Mensagem enviada via Telegram',
-                    result: result
+                    success: successCount > 0,
+                    message: `${successCount} enviada(s), ${errorCount} erro(s)`,
+                    successCount,
+                    errorCount,
+                    results
                 };
             } else {
                 throw new Error(`Provedor ${this.config.provider} não implementado`);
