@@ -77,7 +77,7 @@ async function gerarMensagem() {
 
     // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
     const dadosSMS = coletarDadosFormulario('rompimento');
-    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologia, impactoValor);
+    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologia, impactoValor, tipoStatus);
 
     if (shouldAutoSend || smsService.isEnabled()) {
         const resultSMS = await sendSMSNotification('rompimento', dadosSMS);
@@ -268,7 +268,7 @@ async function gerarMensagemManobra() {
 
     // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
     const dadosSMS = coletarDadosFormulario('manobra');
-    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologiaManobra, impactoManobraValor);
+    const shouldAutoSend = verificarEnvioAutomaticoSMS(topologiaManobra, impactoManobraValor, tipoStatus);
 
     if (shouldAutoSend || smsService.isEnabled()) {
         const resultSMS = await sendSMSNotification('manobra', dadosSMS);
@@ -284,11 +284,17 @@ async function gerarMensagemManobra() {
 // ===== VERIFICAÇÃO DE ENVIO AUTOMÁTICO =====
 
 /**
- * Verifica se deve enviar SMS automaticamente baseado no impacto
+ * Verifica se deve enviar SMS automaticamente baseado no impacto e status
  */
-function verificarEnvioAutomaticoSMS(topologia, impacto) {
+function verificarEnvioAutomaticoSMS(topologia, impacto, tipoStatus) {
     // Se configuração autoSendOnHighImpact não estiver ativa, retorna false
     if (!CONFIG.notification.autoSendOnHighImpact) {
+        return false;
+    }
+
+    // REGRA: Só envia notificação se o status for "inicial"
+    if (tipoStatus !== 'inicial') {
+        console.log(`⚠️ Notificação não enviada: Status "${tipoStatus}" (só envia para status "inicial")`);
         return false;
     }
 
@@ -301,10 +307,10 @@ function verificarEnvioAutomaticoSMS(topologia, impacto) {
 
     // Verifica se atinge os limites de escalonamento
     if (topologia === 'HFC' && numero >= limites.HFC) {
-        console.log(`🚨 Envio automático de SMS: Impacto HFC (${numero}) ≥ ${limites.HFC}`);
+        console.log(`🚨 Envio automático de notificação: Status INICIAL + Impacto HFC (${numero}) ≥ ${limites.HFC}`);
         return true;
     } else if (topologia === 'GPON' && numero >= limites.GPON) {
-        console.log(`🚨 Envio automático de SMS: Impacto GPON (${numero}) ≥ ${limites.GPON}`);
+        console.log(`🚨 Envio automático de notificação: Status INICIAL + Impacto GPON (${numero}) ≥ ${limites.GPON}`);
         return true;
     }
 
