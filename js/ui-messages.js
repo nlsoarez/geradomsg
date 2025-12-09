@@ -293,33 +293,61 @@ async function gerarMensagemManobra() {
  * Verifica se deve enviar SMS automaticamente baseado no impacto e status
  */
 function verificarEnvioAutomaticoSMS(topologia, impacto, tipoStatus) {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 VERIFICANDO CONDIÇÕES PARA ALERTA INDIVIDUAL:');
+    console.log(`   📍 Topologia: "${topologia}"`);
+    console.log(`   📊 Impacto: "${impacto}"`);
+    console.log(`   📋 Status: "${tipoStatus}"`);
+
     // Se configuração autoSendOnHighImpact não estiver ativa, retorna false
     if (!CONFIG.notification.autoSendOnHighImpact) {
+        console.log('❌ RESULTADO: autoSendOnHighImpact desativado');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return false;
     }
 
     // REGRA: Só envia notificação se o status for "inicial"
     if (tipoStatus !== 'inicial') {
-        console.log(`⚠️ Notificação não enviada: Status "${tipoStatus}" (só envia para status "inicial")`);
+        console.log(`❌ RESULTADO: Status "${tipoStatus}" ≠ "inicial" → NÃO ENVIA`);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return false;
     }
 
     const numero = parseInt(impacto);
     if (isNaN(numero)) {
+        console.log('❌ RESULTADO: Impacto inválido (não é número)');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return false;
     }
 
     const limites = CONFIG.escalonamento;
+    console.log(`   🎯 Limites configurados: HFC ≥ ${limites.HFC}, GPON ≥ ${limites.GPON}`);
 
     // Verifica se atinge os limites de escalonamento
-    if (topologia === 'HFC' && numero >= limites.HFC) {
-        console.log(`🚨 Envio automático de notificação: Status INICIAL + Impacto HFC (${numero}) ≥ ${limites.HFC}`);
-        return true;
-    } else if (topologia === 'GPON' && numero >= limites.GPON) {
-        console.log(`🚨 Envio automático de notificação: Status INICIAL + Impacto GPON (${numero}) ≥ ${limites.GPON}`);
-        return true;
+    if (topologia === 'HFC') {
+        if (numero >= limites.HFC) {
+            console.log(`✅ RESULTADO: HFC ${numero} ≥ ${limites.HFC} + Status inicial → ENVIA ALERTA INDIVIDUAL`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            return true;
+        } else {
+            console.log(`❌ RESULTADO: HFC ${numero} < ${limites.HFC} → NÃO ENVIA`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            return false;
+        }
+    } else if (topologia === 'GPON') {
+        if (numero >= limites.GPON) {
+            console.log(`✅ RESULTADO: GPON ${numero} ≥ ${limites.GPON} + Status inicial → ENVIA ALERTA INDIVIDUAL`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            return true;
+        } else {
+            console.log(`❌ RESULTADO: GPON ${numero} < ${limites.GPON} → NÃO ENVIA`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            return false;
+        }
     }
 
+    console.log(`❌ RESULTADO: Topologia "${topologia}" não reconhecida → NÃO ENVIA`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     return false;
 }
 
