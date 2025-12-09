@@ -24,28 +24,25 @@ window.CONFIG = window.CONFIG || {
         GPON: 300
     },
 
-    // Configurações de SMS (Twilio)
-    sms: {
+    // Configurações de notificação automática via Telegram
+    notification: {
         enabled: true,
-        provider: 'twilio',
+        provider: 'telegram',
         autoSendOnHighImpact: true,
 
-        twilio: {
-            accountSid: 'ACc4b98b578b3d2825c7819a0e2c97f1a3',
-            authToken: '84925fad0ea3419800714418b4b39f23',
-            phoneFrom: '+13417585645',
-            // IMPORTANTE: Adicione aqui a URL da sua Twilio Function para contornar CORS
-            // Exemplo: 'https://sms-sender-1234-dev.twil.io/send-sms'
-            // Veja instruções em TWILIO_SETUP.md
-            functionUrl: ''
+        telegram: {
+            // IMPORTANTE: Configure seu bot do Telegram
+            // 1. Abra o Telegram e procure por @BotFather
+            // 2. Digite /newbot e siga as instruções
+            // 3. Copie o token que ele fornece e cole abaixo
+            // 4. Inicie uma conversa com seu bot
+            // 5. Acesse: https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
+            // 6. Procure por "chat":{"id": e copie o número (seu chat_id)
+            botToken: '',  // Cole aqui o token do bot (ex: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz')
+            chatId: ''     // Cole aqui seu chat ID (ex: '123456789')
         },
 
-        recipients: [
-            '+5521991212107'
-        ],
-
         template: {
-            maxLength: 160,
             prefix: '🚨 COP REDE'
         }
     }
@@ -56,5 +53,9 @@ var CONFIG = window.CONFIG;
 
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
-console.log('📱 SMS automático:', CONFIG.sms.enabled ? 'ATIVO' : 'INATIVO');
-console.log('📞 Destinatário:', CONFIG.sms.recipients[0]);
+console.log('📱 Notificação Telegram:', CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA');
+if (CONFIG.notification.telegram.chatId) {
+    console.log('💬 Chat ID configurado:', CONFIG.notification.telegram.chatId);
+} else {
+    console.warn('⚠️ Configure o bot do Telegram em js/config-inline.js');
+}

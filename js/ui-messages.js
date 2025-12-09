@@ -288,7 +288,7 @@ async function gerarMensagemManobra() {
  */
 function verificarEnvioAutomaticoSMS(topologia, impacto) {
     // Se configuração autoSendOnHighImpact não estiver ativa, retorna false
-    if (!CONFIG.sms.autoSendOnHighImpact) {
+    if (!CONFIG.notification.autoSendOnHighImpact) {
         return false;
     }
 
