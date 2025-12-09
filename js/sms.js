@@ -1,121 +1,44 @@
 /**
- * Serviço de envio de SMS
+ * Serviço de notificação via Telegram
  */
 
-class SMSService {
+class NotificationService {
     constructor() {
-        this.config = CONFIG.sms;
+        this.config = CONFIG.notification;
         this.enabled = this.config.enabled;
     }
 
     /**
-     * Verifica se o serviço de SMS está habilitado
+     * Verifica se o serviço de notificação está habilitado
      */
     isEnabled() {
-        return this.enabled && this.config.recipients.length > 0;
+        return this.enabled && this.config.telegram.botToken && this.config.telegram.chatId;
     }
 
     /**
-     * Ativa ou desativa o envio de SMS
+     * Ativa ou desativa o envio de notificações
      */
     setEnabled(enabled) {
         this.enabled = enabled;
-        localStorage.setItem('sms_enabled', enabled ? 'true' : 'false');
-        console.log(`SMS ${enabled ? 'ativado' : 'desativado'}`);
+        localStorage.setItem('notification_enabled', enabled ? 'true' : 'false');
+        console.log(`Notificação ${enabled ? 'ativada' : 'desativada'}`);
     }
 
     /**
-     * Carrega estado do SMS do localStorage
+     * Carrega estado do localStorage
      */
     loadState() {
-        const savedState = localStorage.getItem('sms_enabled');
+        const savedState = localStorage.getItem('notification_enabled');
         if (savedState !== null) {
             this.enabled = savedState === 'true';
         }
     }
 
     /**
-     * Adiciona um número de telefone à lista
+     * Constrói a mensagem baseada nos dados do incidente
      */
-    addRecipient(phoneNumber) {
-        const formatted = this.formatPhoneNumber(phoneNumber);
-        if (!formatted) {
-            throw new Error('Número de telefone inválido');
-        }
-
-        if (!this.config.recipients.includes(formatted)) {
-            this.config.recipients.push(formatted);
-            this.saveRecipients();
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Remove um número de telefone da lista
-     */
-    removeRecipient(phoneNumber) {
-        const index = this.config.recipients.indexOf(phoneNumber);
-        if (index > -1) {
-            this.config.recipients.splice(index, 1);
-            this.saveRecipients();
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Salva números no localStorage
-     */
-    saveRecipients() {
-        localStorage.setItem('sms_recipients', JSON.stringify(this.config.recipients));
-    }
-
-    /**
-     * Carrega números do localStorage
-     */
-    loadRecipients() {
-        const saved = localStorage.getItem('sms_recipients');
-        if (saved) {
-            try {
-                this.config.recipients = JSON.parse(saved);
-            } catch (error) {
-                console.error('Erro ao carregar números:', error);
-            }
-        }
-    }
-
-    /**
-     * Formata número de telefone para padrão internacional
-     */
-    formatPhoneNumber(phone) {
-        // Remove caracteres não numéricos
-        let cleaned = phone.replace(/\D/g, '');
-
-        // Se começa com 0, remove
-        if (cleaned.startsWith('0')) {
-            cleaned = cleaned.substring(1);
-        }
-
-        // Se não tem código do país, adiciona +55 (Brasil)
-        if (!cleaned.startsWith('55') && cleaned.length <= 11) {
-            cleaned = '55' + cleaned;
-        }
-
-        // Valida comprimento (país + DDD + número)
-        if (cleaned.length >= 12 && cleaned.length <= 13) {
-            return '+' + cleaned;
-        }
-
-        return null;
-    }
-
-    /**
-     * Constrói a mensagem SMS baseada nos dados do incidente
-     */
-    buildSMSMessage(tipo, dados) {
+    buildMessage(tipo, dados) {
         const prefix = this.config.template.prefix;
-        const maxLength = this.config.template.maxLength;
 
         let outage = '';
         let cidade = '';
@@ -131,225 +54,165 @@ class SMSService {
             impacto = dados.impactoManobra || '0';
         }
 
-        // Construir mensagem
-        let message = `${prefix}\nOutage: ${outage}\nCidade: ${cidade}\nImpacto: ${impacto}`;
+        // Construir mensagem formatada para Telegram (suporta Markdown)
+        const message = `${prefix}
 
-        // Truncar se necessário
-        if (message.length > maxLength) {
-            message = message.substring(0, maxLength - 3) + '...';
-        }
+📋 *Outage:* ${outage}
+📍 *Cidade:* ${cidade}
+⚠️ *Impacto:* ${impacto}`;
 
         return message;
     }
 
     /**
-     * Envia SMS via Twilio
+     * Envia mensagem via Telegram Bot API
      */
-    async sendViaTwilio(phoneNumber, message) {
-        const { accountSid, authToken, phoneFrom, functionUrl } = this.config.twilio;
+    async sendViaTelegram(message) {
+        const { botToken, chatId } = this.config.telegram;
 
-        // Validar credenciais
-        if (!accountSid || accountSid === 'SEU_ACCOUNT_SID_AQUI') {
-            throw new Error('Credenciais do Twilio não configuradas');
+        // Validar configurações
+        if (!botToken || botToken.trim() === '') {
+            throw new Error('Token do bot Telegram não configurado. Veja instruções em TELEGRAM_SETUP.md');
         }
 
-        // Se functionUrl está configurada, usar Twilio Function (recomendado)
-        if (functionUrl && functionUrl.trim() !== '') {
-            return await this.sendViaTwilioFunction(phoneNumber, message, functionUrl);
+        if (!chatId || chatId.trim() === '') {
+            throw new Error('Chat ID não configurado. Veja instruções em TELEGRAM_SETUP.md');
         }
 
-        // Caso contrário, tentar chamada direta (pode falhar por CORS)
-        console.warn('⚠️ Usando chamada direta à API Twilio. Isso pode falhar por CORS.');
-        console.warn('📚 Veja TWILIO_SETUP.md para configurar Twilio Function');
-
-        // URL da API Twilio
-        const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+        // URL da API do Telegram
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
         // Preparar dados
-        const data = new URLSearchParams({
-            To: phoneNumber,
-            From: phoneFrom,
-            Body: message
-        });
-
-        // Headers com autenticação Basic
-        const credentials = btoa(`${accountSid}:${authToken}`);
-        const headers = {
-            'Authorization': `Basic ${credentials}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
+        const data = {
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'Markdown'
         };
+
+        console.log('📱 Enviando notificação via Telegram...');
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: headers,
-                body: data.toString()
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Erro ao enviar SMS');
-            }
-
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Erro Twilio:', error);
-            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                throw new Error('Erro de CORS. Configure Twilio Function (veja TWILIO_SETUP.md)');
-            }
-            throw error;
-        }
-    }
-
-    /**
-     * Envia SMS via Twilio Function (serverless - contorna CORS)
-     */
-    async sendViaTwilioFunction(phoneNumber, message, functionUrl) {
-        console.log('📱 Enviando SMS via Twilio Function:', functionUrl);
-
-        try {
-            const response = await fetch(functionUrl, {
-                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    to: phoneNumber,
-                    body: message
-                })
+                body: JSON.stringify(data)
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Erro ao enviar SMS via Function');
+                throw new Error(error.description || 'Erro ao enviar mensagem no Telegram');
             }
 
             const result = await response.json();
 
-            if (!result.success) {
-                throw new Error(result.message || 'Erro desconhecido');
+            if (!result.ok) {
+                throw new Error(result.description || 'Erro desconhecido');
             }
 
+            console.log('✅ Mensagem enviada com sucesso!', result);
+
             return {
-                sid: result.sid,
-                status: 'sent'
+                success: true,
+                message_id: result.result.message_id,
+                chat_id: result.result.chat.id
             };
         } catch (error) {
-            console.error('Erro Twilio Function:', error);
+            console.error('❌ Erro ao enviar mensagem Telegram:', error);
             throw error;
         }
     }
 
     /**
-     * Envia SMS para todos os destinatários configurados
+     * Envia notificação
      */
-    async sendSMS(tipo, dados) {
+    async sendNotification(tipo, dados) {
         if (!this.isEnabled()) {
-            console.log('SMS desabilitado ou sem destinatários configurados');
+            console.log('Notificação desabilitada ou não configurada');
             return {
                 success: false,
-                message: 'SMS desabilitado',
-                results: []
+                message: 'Notificação desabilitada ou não configurada'
             };
         }
 
-        const message = this.buildSMSMessage(tipo, dados);
-        const results = [];
-        let successCount = 0;
-        let errorCount = 0;
+        const message = this.buildMessage(tipo, dados);
 
-        console.log('Enviando SMS:', message);
-
-        for (const recipient of this.config.recipients) {
-            try {
-                if (this.config.provider === 'twilio') {
-                    const result = await this.sendViaTwilio(recipient, message);
-                    results.push({
-                        recipient,
-                        success: true,
-                        sid: result.sid
-                    });
-                    successCount++;
-                } else {
-                    throw new Error(`Provedor ${this.config.provider} não implementado`);
-                }
-            } catch (error) {
-                results.push({
-                    recipient,
-                    success: false,
-                    error: error.message
-                });
-                errorCount++;
-                console.error(`Erro ao enviar SMS para ${recipient}:`, error);
+        try {
+            if (this.config.provider === 'telegram') {
+                const result = await this.sendViaTelegram(message);
+                this.updateStats(true);
+                return {
+                    success: true,
+                    message: 'Mensagem enviada via Telegram',
+                    result: result
+                };
+            } else {
+                throw new Error(`Provedor ${this.config.provider} não implementado`);
             }
+        } catch (error) {
+            this.updateStats(false);
+            console.error('Erro ao enviar notificação:', error);
+            return {
+                success: false,
+                message: error.message,
+                error: error
+            };
         }
-
-        return {
-            success: successCount > 0,
-            message: `${successCount} enviado(s), ${errorCount} erro(s)`,
-            successCount,
-            errorCount,
-            results
-        };
     }
 
     /**
-     * Testa o envio de SMS (modo de teste)
+     * Testa o envio de notificação
      */
-    async testSMS() {
+    async testNotification() {
         const testData = {
             incidente: 'INC-TEST-001',
             cidade: 'RIO DE JANEIRO - RJO',
             impacto: '50'
         };
 
-        return await this.sendSMS('rompimento', testData);
+        return await this.sendNotification('rompimento', testData);
     }
 
     /**
-     * Obtém estatísticas de SMS
+     * Obtém estatísticas de notificações
      */
     getStats() {
-        const sent = parseInt(localStorage.getItem('sms_sent_count') || '0');
-        const errors = parseInt(localStorage.getItem('sms_error_count') || '0');
-        const lastSent = localStorage.getItem('sms_last_sent');
+        const sent = parseInt(localStorage.getItem('notification_sent_count') || '0');
+        const errors = parseInt(localStorage.getItem('notification_error_count') || '0');
+        const lastSent = localStorage.getItem('notification_last_sent');
 
         return {
             sent,
             errors,
-            lastSent: lastSent ? new Date(lastSent).toLocaleString() : 'Nunca',
-            recipients: this.config.recipients.length
+            lastSent: lastSent ? new Date(lastSent).toLocaleString() : 'Nunca'
         };
     }
 
     /**
      * Atualiza estatísticas após envio
      */
-    updateStats(result) {
-        if (result.success) {
-            const sent = parseInt(localStorage.getItem('sms_sent_count') || '0');
-            localStorage.setItem('sms_sent_count', (sent + result.successCount).toString());
-            localStorage.setItem('sms_last_sent', new Date().toISOString());
-        }
-
-        if (result.errorCount > 0) {
-            const errors = parseInt(localStorage.getItem('sms_error_count') || '0');
-            localStorage.setItem('sms_error_count', (errors + result.errorCount).toString());
+    updateStats(success) {
+        if (success) {
+            const sent = parseInt(localStorage.getItem('notification_sent_count') || '0');
+            localStorage.setItem('notification_sent_count', (sent + 1).toString());
+            localStorage.setItem('notification_last_sent', new Date().toISOString());
+        } else {
+            const errors = parseInt(localStorage.getItem('notification_error_count') || '0');
+            localStorage.setItem('notification_error_count', (errors + 1).toString());
         }
     }
 }
 
-// Instanciar serviço
-const smsService = new SMSService();
+// Instanciar serviço (mantém nome 'smsService' para compatibilidade)
+const smsService = new NotificationService();
 
 // Carregar estado salvo
 document.addEventListener('DOMContentLoaded', function() {
     smsService.loadState();
-    smsService.loadRecipients();
 });
 
 // Exportar serviço
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SMSService;
+    module.exports = NotificationService;
 }
