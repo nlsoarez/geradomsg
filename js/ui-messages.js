@@ -75,7 +75,10 @@ async function gerarMensagem() {
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
 
-    // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
+    // ENVIO DA MENSAGEM COMPLETA PARA O GRUPO (sempre)
+    await smsService.sendFullMessageToGroup(msg);
+
+    // ENVIO DE ALERTAS INDIVIDUAIS (apenas quando impacto alto)
     const dadosSMS = coletarDadosFormulario('rompimento');
     const shouldAutoSend = verificarEnvioAutomaticoSMS(topologia, impactoValor, tipoStatus);
 
@@ -266,7 +269,10 @@ async function gerarMensagemManobra() {
     document.getElementById('output').textContent = msg;
     document.getElementById('outputContainer').classList.remove('hidden');
 
-    // ENVIO DE SMS (automático se impacto alto OU se habilitado manualmente)
+    // ENVIO DA MENSAGEM COMPLETA PARA O GRUPO (sempre)
+    await smsService.sendFullMessageToGroup(msg);
+
+    // ENVIO DE ALERTAS INDIVIDUAIS (apenas quando impacto alto)
     const dadosSMS = coletarDadosFormulario('manobra');
     const shouldAutoSend = verificarEnvioAutomaticoSMS(topologiaManobra, impactoManobraValor, tipoStatus);
 
