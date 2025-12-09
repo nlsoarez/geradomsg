@@ -34,9 +34,7 @@ window.CONFIG = window.CONFIG || {
             botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
 
             // URL do Cloudflare Worker (proxy para resolver CORS)
-            // Deixe vazio para chamar API direta (pode dar erro CORS)
-            // Exemplo: 'https://telegram-proxy.seunome.workers.dev'
-            workerUrl: '',
+            workerUrl: 'https://telegram-proxy.nelson-soares.workers.dev',
 
             // Lista de Chat IDs que receberão ALERTAS CURTOS (quando impacto alto)
             chatIds: [
