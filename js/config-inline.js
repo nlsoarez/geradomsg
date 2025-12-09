@@ -31,15 +31,12 @@ window.CONFIG = window.CONFIG || {
         autoSendOnHighImpact: true,
 
         telegram: {
-            // IMPORTANTE: Configure seu bot do Telegram
-            // 1. Abra o Telegram e procure por @BotFather
-            // 2. Digite /newbot e siga as instruções
-            // 3. Copie o token que ele fornece e cole abaixo
-            // 4. Inicie uma conversa com seu bot
-            // 5. Acesse: https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
-            // 6. Procure por "chat":{"id": e copie o número (seu chat_id)
-            botToken: '',  // Cole aqui o token do bot (ex: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz')
-            chatId: ''     // Cole aqui seu chat ID (ex: '123456789')
+            botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
+            // Lista de Chat IDs que receberão as notificações
+            chatIds: [
+                '1834260126'  // Nelson Soares
+                // Adicione mais Chat IDs aqui quando necessário
+            ]
         },
 
         template: {
@@ -54,8 +51,11 @@ var CONFIG = window.CONFIG;
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
 console.log('📱 Notificação Telegram:', CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA');
-if (CONFIG.notification.telegram.chatId) {
-    console.log('💬 Chat ID configurado:', CONFIG.notification.telegram.chatId);
+if (CONFIG.notification.telegram.chatIds && CONFIG.notification.telegram.chatIds.length > 0) {
+    console.log(`💬 ${CONFIG.notification.telegram.chatIds.length} destinatário(s) configurado(s)`);
+    CONFIG.notification.telegram.chatIds.forEach((id, index) => {
+        console.log(`  ${index + 1}. Chat ID: ${id}`);
+    });
 } else {
     console.warn('⚠️ Configure o bot do Telegram em js/config-inline.js');
 }
