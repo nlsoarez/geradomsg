@@ -31,15 +31,8 @@ window.CONFIG = window.CONFIG || {
         autoSendOnHighImpact: true,
 
         telegram: {
-            // IMPORTANTE: Configure seu bot do Telegram
-            // 1. Abra o Telegram e procure por @BotFather
-            // 2. Digite /newbot e siga as instruções
-            // 3. Copie o token que ele fornece e cole abaixo
-            // 4. Inicie uma conversa com seu bot
-            // 5. Acesse: https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
-            // 6. Procure por "chat":{"id": e copie o número (seu chat_id)
-            botToken: '',  // Cole aqui o token do bot (ex: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz')
-            chatId: ''     // Cole aqui seu chat ID (ex: '123456789')
+            botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
+            chatId: '1834260126'
         },
 
         template: {
