@@ -71,7 +71,7 @@ class NotificationService {
      * Envia mensagem via Telegram Bot API para um chat específico
      */
     async sendViaTelegram(chatId, message) {
-        const { botToken } = this.config.telegram;
+        const { botToken, workerUrl } = this.config.telegram;
 
         // Validar configurações
         if (!botToken || botToken.trim() === '') {
@@ -82,17 +82,28 @@ class NotificationService {
             throw new Error('Chat ID não configurado. Veja instruções em TELEGRAM_SETUP.md');
         }
 
-        // URL da API do Telegram
-        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+        // Escolher entre Worker (proxy) ou API direta
+        const useWorker = workerUrl && workerUrl.trim() !== '';
+        const url = useWorker ? workerUrl : `https://api.telegram.org/bot${botToken}/sendMessage`;
 
         // Preparar dados
-        const data = {
+        const data = useWorker ? {
+            // Formato para o Worker
+            botToken: botToken,
+            chatId: chatId,
+            text: message,
+            parseMode: 'Markdown'
+        } : {
+            // Formato para API direta
             chat_id: chatId,
             text: message,
             parse_mode: 'Markdown'
         };
 
-        console.log(`📱 Enviando notificação via Telegram para chat ${chatId}...`);
+        console.log(`📱 Enviando notificação via ${useWorker ? 'Cloudflare Worker' : 'API direta'} para chat ${chatId}...`);
+        if (useWorker) {
+            console.log(`🔧 Worker URL: ${workerUrl}`);
+        }
 
         try {
             const response = await fetch(url, {
