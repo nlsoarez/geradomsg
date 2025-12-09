@@ -34,8 +34,8 @@ window.CONFIG = window.CONFIG || {
             botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
             // Lista de Chat IDs que receberão as notificações
             chatIds: [
-                '1834260126'  // Nelson Soares
-                // Adicione mais Chat IDs aqui quando necessário
+                '1834260126',  // Nelson Soares
+                '5963809768'   // Kelly Lira
             ]
         },
 
