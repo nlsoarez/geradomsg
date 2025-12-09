@@ -82,7 +82,7 @@ async function gerarMensagem() {
     const dadosSMS = coletarDadosFormulario('rompimento');
     const shouldAutoSend = verificarEnvioAutomaticoSMS(topologia, impactoValor, tipoStatus);
 
-    if (shouldAutoSend || smsService.isEnabled()) {
+    if (shouldAutoSend) {
         const resultSMS = await sendSMSNotification('rompimento', dadosSMS);
         if (resultSMS) {
             showSMSFeedback(resultSMS);
@@ -276,7 +276,7 @@ async function gerarMensagemManobra() {
     const dadosSMS = coletarDadosFormulario('manobra');
     const shouldAutoSend = verificarEnvioAutomaticoSMS(topologiaManobra, impactoManobraValor, tipoStatus);
 
-    if (shouldAutoSend || smsService.isEnabled()) {
+    if (shouldAutoSend) {
         const resultSMS = await sendSMSNotification('manobra', dadosSMS);
         if (resultSMS) {
             showSMSFeedback(resultSMS);
