@@ -5,6 +5,8 @@
 // ===== GERAÇÃO DE MENSAGENS - ROMPIMENTO =====
 
 async function gerarMensagem() {
+    console.log('🚀 FUNÇÃO gerarMensagem() INICIADA');
+
     const topologia = document.getElementById('topologia').value;
     if (!topologia) {
         alert('Por favor, selecione o tipo de topologia');
@@ -93,7 +95,9 @@ async function gerarMensagem() {
     await salvarAutomaticamente('rompimento', tipoStatus);
 
     // MOSTRAR POPUP DE CONFIRMAÇÃO
+    console.log('📢 CHAMANDO mostrarPopupMensagem()...');
     mostrarPopupMensagem();
+    console.log('📢 mostrarPopupMensagem() FOI CHAMADA');
 }
 
 function gerarConteudoStatusInicial() {
@@ -195,6 +199,8 @@ function gerarConteudoStatusEncerramento() {
 // ===== GERAÇÃO DE MENSAGENS - MANOBRA =====
 
 async function gerarMensagemManobra() {
+    console.log('🚀 FUNÇÃO gerarMensagemManobra() INICIADA');
+
     const topologiaManobra = document.getElementById('topologiaManobra').value;
     if (!topologiaManobra) {
         alert('Por favor, selecione o tipo de topologia');
@@ -290,7 +296,9 @@ async function gerarMensagemManobra() {
     await salvarAutomaticamente('manobra', tipoStatus);
 
     // MOSTRAR POPUP DE CONFIRMAÇÃO
+    console.log('📢 CHAMANDO mostrarPopupMensagem() [MANOBRA]...');
     mostrarPopupMensagem();
+    console.log('📢 mostrarPopupMensagem() FOI CHAMADA [MANOBRA]');
 }
 
 // ===== VERIFICAÇÃO DE ENVIO AUTOMÁTICO =====
@@ -482,39 +490,57 @@ function toggleExpandirLista() {
  * Mostra o popup de mensagem gerada
  */
 function mostrarPopupMensagem() {
-    console.log('🎉 Mostrando popup de mensagem gerada...');
-    const popup = document.getElementById('mensagemPopup');
+    try {
+        console.log('🎉 INICIANDO mostrarPopupMensagem()...');
 
-    if (!popup) {
-        console.error('❌ Elemento popup não encontrado!');
-        return;
+        const popup = document.getElementById('mensagemPopup');
+        console.log('Elemento popup:', popup);
+
+        if (!popup) {
+            console.error('❌ ERRO: Elemento popup não encontrado!');
+            alert('Erro: Popup não encontrado no DOM');
+            return;
+        }
+
+        console.log('Classes atuais:', popup.className);
+        popup.classList.remove('hidden');
+        console.log('Classes após remover hidden:', popup.className);
+        console.log('Display style:', window.getComputedStyle(popup).display);
+
+        // Garantir que está visível forçando o estilo
+        popup.style.display = 'flex';
+        console.log('✅ Popup AGORA ESTÁ VISÍVEL!');
+
+        // Fechar automaticamente após 3 segundos
+        setTimeout(() => {
+            console.log('⏰ Fechando popup automaticamente após 3s...');
+            fecharPopupMensagem();
+        }, 3000);
+    } catch (error) {
+        console.error('❌ ERRO CRÍTICO no mostrarPopupMensagem:', error);
+        alert('Erro ao mostrar popup: ' + error.message);
     }
-
-    console.log('✅ Popup encontrado, removendo classe hidden...');
-    popup.classList.remove('hidden');
-    console.log('✅ Popup deveria estar visível agora!');
-
-    // Fechar automaticamente após 3 segundos
-    setTimeout(() => {
-        console.log('⏰ Fechando popup automaticamente...');
-        fecharPopupMensagem();
-    }, 3000);
 }
 
 /**
  * Fecha o popup de mensagem gerada
  */
 function fecharPopupMensagem() {
-    console.log('🔒 Fechando popup...');
-    const popup = document.getElementById('mensagemPopup');
+    try {
+        console.log('🔒 FECHANDO popup...');
+        const popup = document.getElementById('mensagemPopup');
 
-    if (!popup) {
-        console.error('❌ Elemento popup não encontrado ao fechar!');
-        return;
+        if (!popup) {
+            console.error('❌ Elemento popup não encontrado ao fechar!');
+            return;
+        }
+
+        popup.classList.add('hidden');
+        popup.style.display = 'none';
+        console.log('✅ Popup fechado com sucesso!');
+    } catch (error) {
+        console.error('❌ Erro ao fechar popup:', error);
     }
-
-    popup.classList.add('hidden');
-    console.log('✅ Popup fechado!');
 }
 
 // ===== INICIALIZAÇÃO =====
