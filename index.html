@@ -3,18 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Mensagens - Fibra Óptica</title>
+    <title>COP Rede - Gerador de Mensagens | Claro Brasil</title>
+    <meta name="description" content="Sistema de geração de mensagens para Centro de Operações de Rede - Claro Brasil">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-broadcast-tower"></i> Gerador de Mensagens</h1>
+    <header>
+        <div class="header-content">
+            <div class="header-logo">
+                <span class="logo-icon">📡</span>
+                <div>
+                    <h1>COP Rede - Gerador de Mensagens</h1>
+                    <div class="header-subtitle">Centro de Operações de Rede | Claro Brasil</div>
+                </div>
+            </div>
             <button class="refresh-btn" onclick="window.location.reload()" title="Atualizar página">
                 <i class="fas fa-sync-alt"></i>
             </button>
-        </header>
+        </div>
+    </header>
+
+    <div class="container">
 
         <div class="card incident-management">
             <h2><i class="fas fa-tasks"></i> Gerenciamento de Incidentes</h2>
@@ -274,9 +284,10 @@
         </div>
 
         <footer>
-            <p class="signature">Desenvolvido por N5923221</p>
+            <p class="signature">Desenvolvido por N5923221 | Claro Brasil - Centro de Operações de Rede</p>
         </footer>
     </div>
+
 
     <!-- Popup de confirmação de mensagem gerada -->
     <div id="mensagemPopup" class="popup-overlay hidden">
