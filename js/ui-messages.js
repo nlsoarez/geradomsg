@@ -91,6 +91,9 @@ async function gerarMensagem() {
 
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('rompimento', tipoStatus);
+
+    // MOSTRAR POPUP DE CONFIRMAÇÃO
+    mostrarPopupMensagem();
 }
 
 function gerarConteudoStatusInicial() {
@@ -285,6 +288,9 @@ async function gerarMensagemManobra() {
 
     // SALVAMENTO AUTOMÁTICO (exceto no status inicial)
     await salvarAutomaticamente('manobra', tipoStatus);
+
+    // MOSTRAR POPUP DE CONFIRMAÇÃO
+    mostrarPopupMensagem();
 }
 
 // ===== VERIFICAÇÃO DE ENVIO AUTOMÁTICO =====
@@ -470,6 +476,29 @@ function toggleExpandirLista() {
     }
 }
 
+// ===== POPUP DE CONFIRMAÇÃO =====
+
+/**
+ * Mostra o popup de mensagem gerada
+ */
+function mostrarPopupMensagem() {
+    const popup = document.getElementById('mensagemPopup');
+    popup.classList.remove('hidden');
+
+    // Fechar automaticamente após 3 segundos
+    setTimeout(() => {
+        fecharPopupMensagem();
+    }, 3000);
+}
+
+/**
+ * Fecha o popup de mensagem gerada
+ */
+function fecharPopupMensagem() {
+    const popup = document.getElementById('mensagemPopup');
+    popup.classList.add('hidden');
+}
+
 // ===== INICIALIZAÇÃO =====
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -484,6 +513,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.value = this.value.toUpperCase();
                 this.value = this.value.replace(/\.{2,}/g, '.');
             });
+        }
+    });
+
+    // Fechar popup ao clicar fora do card
+    document.getElementById('mensagemPopup')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharPopupMensagem();
         }
     });
 });
