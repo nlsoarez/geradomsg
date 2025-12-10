@@ -452,7 +452,7 @@ function getHtmlStatusAtualizacao() {
             <input type="text" id="validado">
         </div>
         <div class="form-group">
-            <label for="novaAtualizacao">Nova Atualização (Texto Livre):</label>
+            <label for="novaAtualizacao">Nova Atualização:</label>
             <textarea id="novaAtualizacao" rows="4" placeholder="Digite aqui informações adicionais sobre a atualização..."></textarea>
         </div>
     `;
