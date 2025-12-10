@@ -482,11 +482,21 @@ function toggleExpandirLista() {
  * Mostra o popup de mensagem gerada
  */
 function mostrarPopupMensagem() {
+    console.log('🎉 Mostrando popup de mensagem gerada...');
     const popup = document.getElementById('mensagemPopup');
+
+    if (!popup) {
+        console.error('❌ Elemento popup não encontrado!');
+        return;
+    }
+
+    console.log('✅ Popup encontrado, removendo classe hidden...');
     popup.classList.remove('hidden');
+    console.log('✅ Popup deveria estar visível agora!');
 
     // Fechar automaticamente após 3 segundos
     setTimeout(() => {
+        console.log('⏰ Fechando popup automaticamente...');
         fecharPopupMensagem();
     }, 3000);
 }
@@ -495,8 +505,16 @@ function mostrarPopupMensagem() {
  * Fecha o popup de mensagem gerada
  */
 function fecharPopupMensagem() {
+    console.log('🔒 Fechando popup...');
     const popup = document.getElementById('mensagemPopup');
+
+    if (!popup) {
+        console.error('❌ Elemento popup não encontrado ao fechar!');
+        return;
+    }
+
     popup.classList.add('hidden');
+    console.log('✅ Popup fechado!');
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -516,10 +534,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Fechar popup ao clicar fora do card
-    document.getElementById('mensagemPopup')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-            fecharPopupMensagem();
-        }
-    });
+    // Verificar se popup existe e configurar event listener
+    const popupElement = document.getElementById('mensagemPopup');
+    if (popupElement) {
+        console.log('✅ Popup encontrado no carregamento da página');
+
+        // Fechar popup ao clicar fora do card
+        popupElement.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharPopupMensagem();
+            }
+        });
+    } else {
+        console.error('❌ Popup NÃO encontrado no carregamento da página!');
+    }
 });
