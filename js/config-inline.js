@@ -24,25 +24,46 @@ window.CONFIG = window.CONFIG || {
         GPON: 300
     },
 
-    // Configurações de notificação automática via Telegram
+    // Configurações de notificação automática
     notification: {
         enabled: true,
-        provider: 'telegram',
+        provider: 'whatsapp',  // 'whatsapp' ou 'telegram'
         autoSendOnHighImpact: true,
 
-        telegram: {
-            botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
+        // Configurações do WhatsApp via Evolution API
+        whatsapp: {
+            // URL da Evolution API (Railway, VPS, etc.)
+            apiUrl: 'https://sua-evolution-api.railway.app',
+
+            // Chave de API da Evolution
+            apiKey: 'SUA_API_KEY_AQUI',
+
+            // Nome da instância conectada
+            instance: 'cop-rede',
 
             // URL do Cloudflare Worker (proxy para resolver CORS)
-            workerUrl: 'https://telegram-proxy.nelson-soares.workers.dev',
+            workerUrl: 'https://whatsapp-proxy.nelson-soares.workers.dev',
 
-            // Lista de Chat IDs que receberão ALERTAS CURTOS (quando impacto alto)
+            // Lista de números que receberão ALERTAS CURTOS (quando impacto alto)
+            // Formato: código do país + DDD + número (sem +, espaços ou traços)
+            numbers: [
+                '5521999999999',  // Nelson Soares
+                '5521888888888'   // Kelly Lira
+            ],
+
+            // ID do grupo que receberá MENSAGEM COMPLETA (sempre)
+            // Formato: ID do grupo com sufixo @g.us
+            groupId: '120363XXXXXXXXXX@g.us'  // Grupo: Cop Rede
+        },
+
+        // Configurações do Telegram (mantido para fallback)
+        telegram: {
+            botToken: '8266961280:AAEqEiuefaJy9UzGNuXYJm1ClIsqrVk-Y2k',
+            workerUrl: 'https://telegram-proxy.nelson-soares.workers.dev',
             chatIds: [
                 '1834260126',  // Nelson Soares
                 '5963809768'   // Kelly Lira
             ],
-
-            // Chat ID do grupo que receberá MENSAGEM COMPLETA (sempre)
             groupChatId: '-1003350697831'  // Grupo: Cop Rede
         },
 
@@ -57,21 +78,42 @@ var CONFIG = window.CONFIG;
 
 // Log de carregamento
 console.log('✅ Configuração carregada com sucesso!');
-console.log('📱 Notificação Telegram:', CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA');
+console.log(`📱 Notificação: ${CONFIG.notification.enabled ? 'ATIVA' : 'INATIVA'} (${CONFIG.notification.provider.toUpperCase()})`);
 
-// Alertas individuais
-if (CONFIG.notification.telegram.chatIds && CONFIG.notification.telegram.chatIds.length > 0) {
-    console.log(`👤 Alertas individuais: ${CONFIG.notification.telegram.chatIds.length} destinatário(s)`);
-    CONFIG.notification.telegram.chatIds.forEach((id, index) => {
-        console.log(`  ${index + 1}. Chat ID: ${id}`);
-    });
-} else {
-    console.warn('⚠️ Nenhum destinatário individual configurado');
-}
+// Mostrar configuração baseada no provider
+if (CONFIG.notification.provider === 'whatsapp') {
+    // WhatsApp via Evolution API
+    console.log(`🟢 WhatsApp API: ${CONFIG.notification.whatsapp.apiUrl}`);
+    console.log(`📦 Instância: ${CONFIG.notification.whatsapp.instance}`);
 
-// Grupo
-if (CONFIG.notification.telegram.groupChatId) {
-    console.log(`👥 Grupo configurado: ${CONFIG.notification.telegram.groupChatId}`);
+    if (CONFIG.notification.whatsapp.numbers && CONFIG.notification.whatsapp.numbers.length > 0) {
+        console.log(`👤 Alertas individuais: ${CONFIG.notification.whatsapp.numbers.length} destinatário(s)`);
+        CONFIG.notification.whatsapp.numbers.forEach((num, index) => {
+            console.log(`  ${index + 1}. Número: ${num}`);
+        });
+    } else {
+        console.warn('⚠️ Nenhum destinatário individual configurado');
+    }
+
+    if (CONFIG.notification.whatsapp.groupId) {
+        console.log(`👥 Grupo configurado: ${CONFIG.notification.whatsapp.groupId}`);
+    } else {
+        console.warn('⚠️ Grupo não configurado');
+    }
 } else {
-    console.warn('⚠️ Grupo não configurado');
+    // Telegram
+    if (CONFIG.notification.telegram.chatIds && CONFIG.notification.telegram.chatIds.length > 0) {
+        console.log(`👤 Alertas individuais: ${CONFIG.notification.telegram.chatIds.length} destinatário(s)`);
+        CONFIG.notification.telegram.chatIds.forEach((id, index) => {
+            console.log(`  ${index + 1}. Chat ID: ${id}`);
+        });
+    } else {
+        console.warn('⚠️ Nenhum destinatário individual configurado');
+    }
+
+    if (CONFIG.notification.telegram.groupChatId) {
+        console.log(`👥 Grupo configurado: ${CONFIG.notification.telegram.groupChatId}`);
+    } else {
+        console.warn('⚠️ Grupo não configurado');
+    }
 }

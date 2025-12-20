@@ -1,5 +1,5 @@
 /**
- * Serviço de notificação via Telegram
+ * Serviço de notificação via WhatsApp (Evolution API) ou Telegram
  */
 
 class NotificationService {
@@ -12,10 +12,19 @@ class NotificationService {
      * Verifica se o serviço de notificação está habilitado
      */
     isEnabled() {
-        return this.enabled &&
-               this.config.telegram.botToken &&
-               this.config.telegram.chatIds &&
-               this.config.telegram.chatIds.length > 0;
+        if (!this.enabled) return false;
+
+        if (this.config.provider === 'whatsapp') {
+            return this.config.whatsapp.apiKey &&
+                   this.config.whatsapp.apiUrl &&
+                   this.config.whatsapp.instance &&
+                   this.config.whatsapp.numbers &&
+                   this.config.whatsapp.numbers.length > 0;
+        } else {
+            return this.config.telegram.botToken &&
+                   this.config.telegram.chatIds &&
+                   this.config.telegram.chatIds.length > 0;
+        }
     }
 
     /**
@@ -57,7 +66,7 @@ class NotificationService {
             impacto = dados.impactoManobra || '0';
         }
 
-        // Construir mensagem formatada para Telegram (suporta Markdown)
+        // Construir mensagem formatada (suporta formatação WhatsApp e Telegram)
         const message = `${prefix}
 
 📋 *Outage:* ${outage}
@@ -65,6 +74,91 @@ class NotificationService {
 ⚠️ *Impacto:* ${impacto}`;
 
         return message;
+    }
+
+    /**
+     * Envia mensagem via WhatsApp usando Evolution API
+     */
+    async sendViaWhatsApp(number, message) {
+        const { apiUrl, apiKey, instance, workerUrl } = this.config.whatsapp;
+
+        // Validar configurações
+        if (!apiKey || apiKey.trim() === '' || apiKey === 'SUA_API_KEY_AQUI') {
+            throw new Error('API Key da Evolution não configurada. Veja instruções em WHATSAPP_SETUP.md');
+        }
+
+        if (!number || number.trim() === '') {
+            throw new Error('Número de destino não configurado');
+        }
+
+        // Usar Worker como proxy para CORS
+        const useWorker = workerUrl && workerUrl.trim() !== '' && !workerUrl.includes('sua-');
+
+        // URL de destino
+        const directUrl = `${apiUrl}/message/sendText/${instance}`;
+        const url = useWorker ? workerUrl : directUrl;
+
+        // Preparar dados
+        const payload = useWorker ? {
+            // Formato para o Worker (proxy)
+            apiUrl: apiUrl,
+            apiKey: apiKey,
+            instance: instance,
+            number: number,
+            text: message
+        } : {
+            // Formato para API direta
+            number: number,
+            options: {
+                delay: 1200,
+                presence: 'composing'
+            },
+            textMessage: {
+                text: message
+            }
+        };
+
+        console.log(`📱 Enviando WhatsApp via ${useWorker ? 'Cloudflare Worker' : 'API direta'} para ${number}...`);
+
+        try {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            // Adicionar apikey no header se for API direta
+            if (!useWorker) {
+                headers['apikey'] = apiKey;
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+                throw new Error(error.message || error.error || 'Erro ao enviar mensagem WhatsApp');
+            }
+
+            const result = await response.json();
+
+            // Verificar se houve erro na resposta
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            console.log('✅ Mensagem WhatsApp enviada com sucesso!', result);
+
+            return {
+                success: true,
+                message_id: result.key?.id || result.messageId,
+                number: number
+            };
+        } catch (error) {
+            console.error('❌ Erro ao enviar mensagem WhatsApp:', error);
+            throw error;
+        }
     }
 
     /**
@@ -100,10 +194,7 @@ class NotificationService {
             parse_mode: 'Markdown'
         };
 
-        console.log(`📱 Enviando notificação via ${useWorker ? 'Cloudflare Worker' : 'API direta'} para chat ${chatId}...`);
-        if (useWorker) {
-            console.log(`🔧 Worker URL: ${workerUrl}`);
-        }
+        console.log(`📱 Enviando Telegram via ${useWorker ? 'Cloudflare Worker' : 'API direta'} para chat ${chatId}...`);
 
         try {
             const response = await fetch(url, {
@@ -125,7 +216,7 @@ class NotificationService {
                 throw new Error(result.description || 'Erro desconhecido');
             }
 
-            console.log('✅ Mensagem enviada com sucesso!', result);
+            console.log('✅ Mensagem Telegram enviada com sucesso!', result);
 
             return {
                 success: true,
@@ -151,14 +242,39 @@ class NotificationService {
         }
 
         const message = this.buildMessage(tipo, dados);
-        const { chatIds } = this.config.telegram;
         const results = [];
         let successCount = 0;
         let errorCount = 0;
 
         try {
-            if (this.config.provider === 'telegram') {
-                // Enviar para todos os chat IDs configurados
+            if (this.config.provider === 'whatsapp') {
+                // Enviar para todos os números configurados via WhatsApp
+                const { numbers } = this.config.whatsapp;
+
+                for (const number of numbers) {
+                    try {
+                        const result = await this.sendViaWhatsApp(number, message);
+                        results.push({
+                            number,
+                            success: true,
+                            result
+                        });
+                        successCount++;
+                        console.log(`✅ Mensagem enviada para ${number}`);
+                    } catch (error) {
+                        results.push({
+                            number,
+                            success: false,
+                            error: error.message
+                        });
+                        errorCount++;
+                        console.error(`❌ Erro ao enviar para ${number}:`, error.message);
+                    }
+                }
+            } else if (this.config.provider === 'telegram') {
+                // Enviar para todos os chat IDs configurados via Telegram
+                const { chatIds } = this.config.telegram;
+
                 for (const chatId of chatIds) {
                     try {
                         const result = await this.sendViaTelegram(chatId, message);
@@ -179,19 +295,19 @@ class NotificationService {
                         console.error(`❌ Erro ao enviar para chat ${chatId}:`, error.message);
                     }
                 }
-
-                this.updateStats(successCount > 0);
-
-                return {
-                    success: successCount > 0,
-                    message: `${successCount} enviada(s), ${errorCount} erro(s)`,
-                    successCount,
-                    errorCount,
-                    results
-                };
             } else {
                 throw new Error(`Provedor ${this.config.provider} não implementado`);
             }
+
+            this.updateStats(successCount > 0);
+
+            return {
+                success: successCount > 0,
+                message: `${successCount} enviada(s), ${errorCount} erro(s)`,
+                successCount,
+                errorCount,
+                results
+            };
         } catch (error) {
             this.updateStats(false);
             console.error('Erro ao enviar notificação:', error);
@@ -204,19 +320,74 @@ class NotificationService {
     }
 
     /**
-     * Envia mensagem COMPLETA para o grupo do Telegram
+     * Envia mensagem COMPLETA para o grupo
      * @param {string} fullMessage - Mensagem completa formatada
      * @returns {Promise<Object>} Resultado do envio
      */
     async sendFullMessageToGroup(fullMessage) {
+        if (this.config.provider === 'whatsapp') {
+            return await this.sendFullMessageToWhatsAppGroup(fullMessage);
+        } else {
+            return await this.sendFullMessageToTelegramGroup(fullMessage);
+        }
+    }
+
+    /**
+     * Envia mensagem completa para grupo do WhatsApp
+     */
+    async sendFullMessageToWhatsAppGroup(fullMessage) {
+        const { groupId, apiKey } = this.config.whatsapp;
+
+        // Verificar se grupo está configurado
+        if (!groupId || groupId.trim() === '' || groupId.includes('XXXXXXXX')) {
+            console.log('⚠️ Grupo WhatsApp não configurado. Mensagem não enviada ao grupo.');
+            return {
+                success: false,
+                message: 'Grupo WhatsApp não configurado'
+            };
+        }
+
+        if (!apiKey || apiKey.trim() === '' || apiKey === 'SUA_API_KEY_AQUI') {
+            console.error('❌ API Key da Evolution não configurada');
+            return {
+                success: false,
+                message: 'API Key não configurada'
+            };
+        }
+
+        console.log('📢 Enviando mensagem completa para o grupo WhatsApp...');
+
+        try {
+            const result = await this.sendViaWhatsApp(groupId, fullMessage);
+            console.log(`✅ Mensagem completa enviada para o grupo WhatsApp`);
+
+            return {
+                success: true,
+                message: 'Mensagem enviada ao grupo WhatsApp',
+                result: result
+            };
+        } catch (error) {
+            console.error(`❌ Erro ao enviar mensagem para o grupo WhatsApp:`, error.message);
+            return {
+                success: false,
+                message: error.message,
+                error: error
+            };
+        }
+    }
+
+    /**
+     * Envia mensagem completa para grupo do Telegram
+     */
+    async sendFullMessageToTelegramGroup(fullMessage) {
         const { groupChatId, botToken } = this.config.telegram;
 
         // Verificar se grupo está configurado
         if (!groupChatId || groupChatId.trim() === '') {
-            console.log('⚠️ Grupo não configurado. Mensagem não enviada ao grupo.');
+            console.log('⚠️ Grupo Telegram não configurado. Mensagem não enviada ao grupo.');
             return {
                 success: false,
-                message: 'Grupo não configurado'
+                message: 'Grupo Telegram não configurado'
             };
         }
 
@@ -228,7 +399,7 @@ class NotificationService {
             };
         }
 
-        console.log('📢 Enviando mensagem completa para o grupo...');
+        console.log('📢 Enviando mensagem completa para o grupo Telegram...');
 
         try {
             const result = await this.sendViaTelegram(groupChatId, fullMessage);
@@ -236,11 +407,11 @@ class NotificationService {
 
             return {
                 success: true,
-                message: 'Mensagem enviada ao grupo',
+                message: 'Mensagem enviada ao grupo Telegram',
                 result: result
             };
         } catch (error) {
-            console.error(`❌ Erro ao enviar mensagem para o grupo:`, error.message);
+            console.error(`❌ Erro ao enviar mensagem para o grupo Telegram:`, error.message);
             return {
                 success: false,
                 message: error.message,
@@ -273,7 +444,8 @@ class NotificationService {
         return {
             sent,
             errors,
-            lastSent: lastSent ? new Date(lastSent).toLocaleString() : 'Nunca'
+            lastSent: lastSent ? new Date(lastSent).toLocaleString() : 'Nunca',
+            provider: this.config.provider
         };
     }
 
@@ -289,6 +461,13 @@ class NotificationService {
             const errors = parseInt(localStorage.getItem('notification_error_count') || '0');
             localStorage.setItem('notification_error_count', (errors + 1).toString());
         }
+    }
+
+    /**
+     * Retorna o provedor atual
+     */
+    getProvider() {
+        return this.config.provider;
     }
 }
 
