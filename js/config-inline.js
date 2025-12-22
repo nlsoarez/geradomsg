@@ -32,14 +32,14 @@ window.CONFIG = window.CONFIG || {
 
         // Configurações do WhatsApp via Evolution API
         whatsapp: {
-            // URL da Evolution API (Railway, VPS, etc.)
-            apiUrl: 'https://sua-evolution-api.railway.app',
+            // URL da Evolution API (Railway)
+            apiUrl: 'https://evolution-api-production-67ea.up.railway.app',
 
             // Chave de API da Evolution
-            apiKey: 'SUA_API_KEY_AQUI',
+            apiKey: 'coprede2026',
 
             // Nome da instância conectada
-            instance: 'cop-rede',
+            instance: 'Cop Rede',
 
             // URL do Cloudflare Worker (proxy para resolver CORS)
             workerUrl: 'https://whatsapp-proxy.nelson-soares.workers.dev',
@@ -47,13 +47,12 @@ window.CONFIG = window.CONFIG || {
             // Lista de números que receberão ALERTAS CURTOS (quando impacto alto)
             // Formato: código do país + DDD + número (sem +, espaços ou traços)
             numbers: [
-                '5521999999999',  // Nelson Soares
-                '5521888888888'   // Kelly Lira
+                '5521994579435'   // Kelly
             ],
 
             // ID do grupo que receberá MENSAGEM COMPLETA (sempre)
             // Formato: ID do grupo com sufixo @g.us
-            groupId: '120363XXXXXXXXXX@g.us'  // Grupo: Cop Rede
+            groupId: '120363405983079974@g.us'  // Grupo: Teste 1
         },
 
         // Configurações do Telegram (mantido para fallback)
