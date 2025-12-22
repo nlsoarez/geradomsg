@@ -42,7 +42,7 @@ window.CONFIG = window.CONFIG || {
             instance: 'Cop Rede',
 
             // URL do Cloudflare Worker (proxy para resolver CORS)
-            workerUrl: 'https://whatsapp-proxy.nelson-soares.workers.dev',
+            workerUrl: 'https://bitter-feather-847dwhatsapp-proxy.nelson-soares.workers.dev',
 
             // Lista de números que receberão ALERTAS CURTOS (quando impacto alto)
             // Formato: código do país + DDD + número (sem +, espaços ou traços)
