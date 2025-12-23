@@ -33,7 +33,7 @@ window.CONFIG = window.CONFIG || {
         // Configurações do WhatsApp via Evolution API
         whatsapp: {
             // URL da Evolution API (Railway)
-            apiUrl: 'https://evolution-api-production-67ea.up.railway.app',
+            apiUrl: 'https://evolution-api-production-b976.up.railway.app',
 
             // Chave de API da Evolution
             apiKey: 'coprede2026',
@@ -47,7 +47,8 @@ window.CONFIG = window.CONFIG || {
             // Lista de números que receberão ALERTAS CURTOS (quando impacto alto)
             // Formato: código do país + DDD + número (sem +, espaços ou traços)
             numbers: [
-                '5521994579435'   // Kelly
+                '5521994579435',  // Kelly
+                '5521974696943'   // Nelson
             ],
 
             // ID do grupo que receberá MENSAGEM COMPLETA (sempre)
