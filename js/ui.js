@@ -455,6 +455,12 @@ function getHtmlStatusAtualizacao() {
                 <label for="novaAtualizacaoCheck"><strong>Nova atualização (texto livre)</strong></label>
             </div>
         </div>
+        <div id="campoNovaAtualizacao" class="hidden">
+            <div class="form-group">
+                <label for="novaAtualizacao">Nova Atualização:</label>
+                <textarea id="novaAtualizacao" rows="4" placeholder="Digite aqui informações adicionais sobre a atualização..."></textarea>
+            </div>
+        </div>
         <div id="camposAtualizacaoNormal">
             <div class="form-group">
                 <label for="enderecoDano">Endereço do Dano:</label>
@@ -498,10 +504,6 @@ function getHtmlStatusAtualizacao() {
                 <label for="validado">Percentual de Nodes Normalizados (%):</label>
                 <input type="text" id="validado">
             </div>
-        </div>
-        <div class="form-group">
-            <label for="novaAtualizacao">Nova Atualização:</label>
-            <textarea id="novaAtualizacao" rows="4" placeholder="Digite aqui informações adicionais sobre a atualização..."></textarea>
         </div>
     `;
 }
@@ -663,24 +665,17 @@ function mostrarCampoEquipe() {
 function toggleNovaAtualizacao() {
     const checkbox = document.getElementById('novaAtualizacaoCheck');
     const camposNormais = document.getElementById('camposAtualizacaoNormal');
+    const campoNovaAtualizacao = document.getElementById('campoNovaAtualizacao');
 
-    if (checkbox && camposNormais) {
+    if (checkbox && camposNormais && campoNovaAtualizacao) {
         if (checkbox.checked) {
-            // Desabilitar todos os campos dentro de camposAtualizacaoNormal
-            camposNormais.style.opacity = '0.5';
-            camposNormais.style.pointerEvents = 'none';
-            const inputs = camposNormais.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.disabled = true;
-            });
+            // Mostrar campo de nova atualização e esconder campos normais
+            campoNovaAtualizacao.classList.remove('hidden');
+            camposNormais.classList.add('hidden');
         } else {
-            // Habilitar todos os campos
-            camposNormais.style.opacity = '1';
-            camposNormais.style.pointerEvents = 'auto';
-            const inputs = camposNormais.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.disabled = false;
-            });
+            // Mostrar campos normais e esconder campo de nova atualização
+            campoNovaAtualizacao.classList.add('hidden');
+            camposNormais.classList.remove('hidden');
         }
     }
 }
