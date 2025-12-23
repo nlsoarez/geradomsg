@@ -113,8 +113,24 @@ function gerarConteudoStatusInicial() {
 
     let statusInfo = [];
 
-    if (acionado && acionado.value === 'sim') {
-        statusInfo.push('EQUIPE FO ACIONADA');
+    // Verificar se foi acionado ou não
+    if (acionado) {
+        if (acionado.value === 'sim') {
+            statusInfo.push('EQUIPE FO ACIONADA');
+        } else {
+            const motivoNaoAcionado = document.getElementById('motivoNaoAcionado')?.value.toUpperCase() || '';
+            if (motivoNaoAcionado) {
+                statusInfo.push(`EQUIPE FO NÃO ACIONADA. MOTIVO: ${motivoNaoAcionado}`);
+            } else {
+                statusInfo.push('EQUIPE FO NÃO ACIONADA');
+            }
+        }
+    }
+
+    // Verificar scan
+    if (scan && scan.value === 'sim') {
+        const metragem = document.getElementById('metragemScan')?.value.toUpperCase() || '';
+        statusInfo.push(`EFETUADO SCAN: ${metragem}`);
     }
 
     // Verificar "Não escalonado"
@@ -146,14 +162,14 @@ function gerarConteudoStatusInicial() {
         }
     }
 
-    if (scan && scan.value === 'sim') {
-        const metragem = document.getElementById('metragemScan')?.value.toUpperCase() || '';
-        statusInfo.push(`EFETUADO SCAN: ${metragem}`);
-    }
-
+    // Verificar reagendamento
     if (equipe && equipe.value === 'sim') {
-        const motivo = document.getElementById('motivoEquipe')?.value || '';
-        statusInfo.push(`INCIDENTE AOS CUIDADOS DA EQUIPE DA MANHÃ. MOTIVO: ${motivo}`);
+        let motivo = document.getElementById('motivoEquipe')?.value || '';
+        if (motivo === 'OUTROS') {
+            const outroMotivo = document.getElementById('outrosMotivoTexto')?.value.toUpperCase() || '';
+            motivo = outroMotivo || 'OUTROS';
+        }
+        statusInfo.push(`INCIDENTE REAGENDADO. MOTIVO: ${motivo}`);
     }
 
     // Outras observações
@@ -284,8 +300,17 @@ async function gerarMensagemManobra() {
     if (tipoStatus === 'inicial') {
         const manobraIniciada = document.querySelector('input[name="manobra_iniciada"]:checked');
 
-        if (manobraIniciada && manobraIniciada.value === 'sim') {
-            msg += `MANOBRA INICIADA.\n`;
+        if (manobraIniciada) {
+            if (manobraIniciada.value === 'sim') {
+                msg += `MANOBRA INICIADA.\n`;
+            } else {
+                const motivoNaoIniciada = document.getElementById('motivoManobraNaoIniciada')?.value.toUpperCase() || '';
+                if (motivoNaoIniciada) {
+                    msg += `MANOBRA NÃO INICIADA. MOTIVO: ${motivoNaoIniciada}.\n`;
+                } else {
+                    msg += `MANOBRA NÃO INICIADA.\n`;
+                }
+            }
         }
     } else if (tipoStatus === 'atualizacao') {
         const percentual = get('validadoManobra');
