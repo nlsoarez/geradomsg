@@ -191,7 +191,7 @@ async function atualizarListaIncidentes() {
 }
 
 /**
- * Cria elemento HTML para um incidente
+ * Cria elemento HTML para um incidente (versão compacta - 2 linhas)
  */
 function criarElementoIncidente(incidente) {
     const item = document.createElement('div');
@@ -209,7 +209,6 @@ function criarElementoIncidente(incidente) {
             <div class="incident-id">${incidente.incidente_id}${statusTag}
                 <small style="color: #666;">(por ${incidente.criado_por})</small>
             </div>
-            <div class="incident-info">${incidente.tipo} - ${incidente.dados.incidente || incidente.dados.incidenteManobra || 'Sem nome'}</div>
             <div class="incident-info" style="font-size: 11px;">
                 Atualizado: ${new Date(incidente.data_atualizacao || incidente.dataCriacao).toLocaleString()}
             </div>
@@ -226,6 +225,16 @@ function criarElementoIncidente(incidente) {
     });
 
     return item;
+}
+
+/**
+ * Toggle accordion open/closed
+ */
+function toggleAccordion(cardId) {
+    const card = document.getElementById(cardId);
+    if (card) {
+        card.classList.toggle('accordion-closed');
+    }
 }
 
 // ===== FUNÇÕES DE FORMULÁRIO =====
@@ -362,57 +371,27 @@ function atualizarCamposStatusManobra() {
 
 function getHtmlStatusInicial() {
     return `
-        <div class="form-group">
+        <div class="form-group-inline">
             <label>Incidente acionado?</label>
-            <div class="radio-group">
+            <div class="radio-group inline">
                 <div class="radio-option">
-                    <input type="radio" id="acionado_sim" name="acionado" value="sim">
+                    <input type="radio" id="acionado_sim" name="acionado" value="sim" onchange="mostrarCampoAcionado()">
                     <label for="acionado_sim">Sim</label>
                 </div>
                 <div class="radio-option">
-                    <input type="radio" id="acionado_nao" name="acionado" value="nao">
+                    <input type="radio" id="acionado_nao" name="acionado" value="nao" onchange="mostrarCampoAcionado()">
                     <label for="acionado_nao">Não</label>
                 </div>
             </div>
         </div>
-
-        <div class="form-group">
-            <label>Escalonamento?</label>
-            <div class="checkbox-group">
-                <div class="checkbox-option">
-                    <input type="checkbox" id="esc_nao_escalonado" onchange="toggleNaoEscalonado()">
-                    <label for="esc_nao_escalonado">Não escalonado</label>
-                </div>
-
-                <div class="checkbox-option">
-                    <input type="checkbox" id="esc_ponto_focal" onchange="toggleEscalonamentoInput('ponto_focal')">
-                    <label for="esc_ponto_focal">Ponto Focal</label>
-                </div>
-                <input type="text" id="esc_ponto_focal_nome" class="escalonamento-input hidden" placeholder="Nome do Ponto Focal">
-
-                <div class="checkbox-option">
-                    <input type="checkbox" id="esc_supervisor" onchange="toggleEscalonamentoInput('supervisor')">
-                    <label for="esc_supervisor">Supervisor</label>
-                </div>
-                <input type="text" id="esc_supervisor_nome" class="escalonamento-input hidden" placeholder="Nome do Supervisor">
-
-                <div class="checkbox-option">
-                    <input type="checkbox" id="esc_coordenador" onchange="toggleEscalonamentoInput('coordenador')">
-                    <label for="esc_coordenador">Coordenador</label>
-                </div>
-                <input type="text" id="esc_coordenador_nome" class="escalonamento-input hidden" placeholder="Nome do Coordenador">
-
-                <div class="checkbox-option">
-                    <input type="checkbox" id="esc_gerente" onchange="toggleEscalonamentoInput('gerente')">
-                    <label for="esc_gerente">Gerente</label>
-                </div>
-                <input type="text" id="esc_gerente_nome" class="escalonamento-input hidden" placeholder="Nome do Gerente">
-            </div>
+        <div id="campoMotivoAcionado" class="motivo-field hidden">
+            <label for="motivoNaoAcionado">Informe o motivo:</label>
+            <input type="text" id="motivoNaoAcionado">
         </div>
 
-        <div class="form-group">
+        <div class="form-group-inline">
             <label>Scan realizado?</label>
-            <div class="radio-group">
+            <div class="radio-group inline">
                 <div class="radio-option">
                     <input type="radio" id="scan_sim" name="scan" value="sim" onchange="mostrarCampoScan()">
                     <label for="scan_sim">Sim</label>
@@ -422,12 +401,56 @@ function getHtmlStatusInicial() {
                     <label for="scan_nao">Não</label>
                 </div>
             </div>
-            <div id="campoScan" class="conditional-field hidden"></div>
         </div>
+        <div id="campoScan" class="motivo-field hidden"></div>
 
         <div class="form-group">
-            <label>Incidente ficará com equipe da manhã?</label>
-            <div class="radio-group">
+            <label>Escalonamento?</label>
+            <div class="checkbox-group inline">
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_nao_escalonado" onchange="toggleNaoEscalonado()">
+                        <label for="esc_nao_escalonado">Não escalonado</label>
+                    </div>
+                </div>
+
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_ponto_focal" onchange="toggleEscalonamentoInput('ponto_focal')">
+                        <label for="esc_ponto_focal">Ponto focal</label>
+                    </div>
+                    <input type="text" id="esc_ponto_focal_nome" class="escalonamento-input hidden" placeholder="Inserir nome" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                </div>
+
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_supervisor" onchange="toggleEscalonamentoInput('supervisor')">
+                        <label for="esc_supervisor">Supervisor</label>
+                    </div>
+                    <input type="text" id="esc_supervisor_nome" class="escalonamento-input hidden" placeholder="Inserir nome" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                </div>
+
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_coordenador" onchange="toggleEscalonamentoInput('coordenador')">
+                        <label for="esc_coordenador">Coordenador</label>
+                    </div>
+                    <input type="text" id="esc_coordenador_nome" class="escalonamento-input hidden" placeholder="Inserir nome" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                </div>
+
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_gerente" onchange="toggleEscalonamentoInput('gerente')">
+                        <label for="esc_gerente">Gerente</label>
+                    </div>
+                    <input type="text" id="esc_gerente_nome" class="escalonamento-input hidden" placeholder="Inserir nome" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-inline">
+            <label>Incidente reagendado?</label>
+            <div class="radio-group inline">
                 <div class="radio-option">
                     <input type="radio" id="equipe_sim" name="equipe" value="sim" onchange="mostrarCampoEquipe()">
                     <label for="equipe_sim">Sim</label>
@@ -437,12 +460,12 @@ function getHtmlStatusInicial() {
                     <label for="equipe_nao">Não</label>
                 </div>
             </div>
-            <div id="campoEquipe" class="conditional-field hidden"></div>
         </div>
+        <div id="campoEquipe" class="motivo-field hidden"></div>
 
         <div class="form-group">
-            <label for="outrasObservacoes">Outras Observações:</label>
-            <textarea id="outrasObservacoes" rows="3" placeholder="Digite aqui outras observações relevantes..."></textarea>
+            <label for="outrasObservacoes">Outras observações:</label>
+            <textarea id="outrasObservacoes" rows="3"></textarea>
         </div>
     `;
 }
@@ -511,40 +534,48 @@ function getHtmlStatusAtualizacao() {
 function getHtmlStatusEncerramento() {
     return `
         <div class="form-group">
-            <label for="encerramento">Data e Hora de Encerramento:</label>
+            <label for="encerramento">Data e hora de encerramento:</label>
             <input type="text" id="encerramento" placeholder="dd/mm/aaaa hh:mm">
             <div class="date-format">Formato obrigatório: dd/mm/aaaa hh:mm</div>
             <div class="error-message" id="encerramento-error">Formato incorreto. Use: dd/mm/aaaa hh:mm</div>
         </div>
-        <div class="form-group">
-            <label for="fato">FATO:</label>
-            <textarea id="fato" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="causa">CAUSA:</label>
-            <textarea id="causa" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="acao">AÇÃO:</label>
-            <textarea id="acao" rows="3"></textarea>
+        <div class="form-row-fca">
+            <div class="form-group-half">
+                <div class="form-group">
+                    <label for="fato">Fato:</label>
+                    <textarea id="fato" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="causa">Causa:</label>
+                    <textarea id="causa" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="acao">Ação:</label>
+                <textarea id="acao" rows="5"></textarea>
+            </div>
         </div>
     `;
 }
 
 function getHtmlStatusInicialManobra() {
     return `
-        <div class="form-group">
+        <div class="form-group-inline">
             <label>Manobra iniciada?</label>
-            <div class="radio-group">
+            <div class="radio-group inline">
                 <div class="radio-option">
-                    <input type="radio" id="manobra_iniciada_sim" name="manobra_iniciada" value="sim">
+                    <input type="radio" id="manobra_iniciada_sim" name="manobra_iniciada" value="sim" onchange="mostrarCampoManobraIniciada()">
                     <label for="manobra_iniciada_sim">Sim</label>
                 </div>
                 <div class="radio-option">
-                    <input type="radio" id="manobra_iniciada_nao" name="manobra_iniciada" value="nao">
+                    <input type="radio" id="manobra_iniciada_nao" name="manobra_iniciada" value="nao" onchange="mostrarCampoManobraIniciada()">
                     <label for="manobra_iniciada_nao">Não</label>
                 </div>
             </div>
+        </div>
+        <div id="campoMotivoManobra" class="motivo-field hidden">
+            <label for="motivoManobraNaoIniciada">Informe o motivo:</label>
+            <input type="text" id="motivoManobraNaoIniciada">
         </div>
     `;
 }
@@ -648,17 +679,57 @@ function mostrarCampoEquipe() {
         campoEquipe.innerHTML = `
             <div class="form-group">
                 <label for="motivoEquipe">Motivo:</label>
-                <select id="motivoEquipe">
+                <select id="motivoEquipe" onchange="mostrarCampoOutrosMotivo()">
                     <option value="">-- Selecione --</option>
                     <option value="ÁREA DE RISCO">Área de risco</option>
                     <option value="INDISPONIBILIDADE TÉCNICA">Indisponibilidade técnica</option>
                     <option value="SEM ACESSO">Sem acesso</option>
+                    <option value="OUTROS">Outros</option>
                 </select>
+            </div>
+            <div id="campoOutrosMotivo" class="hidden" style="margin-top: 12px;">
+                <label for="outrosMotivoTexto">Informe o motivo:</label>
+                <input type="text" id="outrosMotivoTexto">
             </div>
         `;
         campoEquipe.classList.remove('hidden');
     } else {
         campoEquipe.classList.add('hidden');
+    }
+}
+
+function mostrarCampoOutrosMotivo() {
+    const selectMotivo = document.getElementById('motivoEquipe');
+    const campoOutros = document.getElementById('campoOutrosMotivo');
+
+    if (selectMotivo && campoOutros) {
+        if (selectMotivo.value === 'OUTROS') {
+            campoOutros.classList.remove('hidden');
+        } else {
+            campoOutros.classList.add('hidden');
+        }
+    }
+}
+
+function mostrarCampoAcionado() {
+    const campoMotivo = document.getElementById('campoMotivoAcionado');
+    const acionadoNao = document.getElementById('acionado_nao');
+
+    if (acionadoNao && acionadoNao.checked) {
+        campoMotivo.classList.remove('hidden');
+    } else {
+        campoMotivo.classList.add('hidden');
+    }
+}
+
+function mostrarCampoManobraIniciada() {
+    const campoMotivo = document.getElementById('campoMotivoManobra');
+    const manobraNao = document.getElementById('manobra_iniciada_nao');
+
+    if (manobraNao && manobraNao.checked) {
+        campoMotivo.classList.remove('hidden');
+    } else {
+        campoMotivo.classList.add('hidden');
     }
 }
 
