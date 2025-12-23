@@ -57,7 +57,7 @@ window.CONFIG = window.CONFIG || {
 
             // ID do grupo que receberá MENSAGEM COMPLETA (sempre)
             // Formato: ID do grupo com sufixo @g.us
-            groupId: '120363041642611230@g.us'  // Grupo: COP Rede
+            groupId: '120363405983079974@g.us'  // Grupo: COP Rede
         },
 
         // Configurações do Telegram (mantido para fallback)
