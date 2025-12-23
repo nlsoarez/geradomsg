@@ -48,12 +48,16 @@ window.CONFIG = window.CONFIG || {
             // Formato: código do país + DDD + número (sem +, espaços ou traços)
             numbers: [
                 '5521994579435',  // Kelly
-                '5521974696943'   // Nelson
+                '5521974696943',  // Nelson
+                '5521993576090',  // Pralon
+                '5521993571609',  // Marcos
+                '5521997594878',  // Bruno
+                '5521994724277'   // Marley
             ],
 
             // ID do grupo que receberá MENSAGEM COMPLETA (sempre)
             // Formato: ID do grupo com sufixo @g.us
-            groupId: '120363405983079974@g.us'  // Grupo: Teste 1
+            groupId: '120363041642611230@g.us'  // Grupo: COP Rede
         },
 
         // Configurações do Telegram (mantido para fallback)
