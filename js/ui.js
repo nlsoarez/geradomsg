@@ -17,29 +17,54 @@ async function salvarIncidente() {
     const tipoMensagem = document.getElementById('tipoMensagem').value;
     if (!tipoMensagem) {
         alert('Por favor, selecione um tipo de mensagem primeiro');
-        return;
+        return false;
     }
 
     let incidenteId = document.getElementById('incidenteId').value.trim();
     if (!incidenteId) {
         incidenteId = prompt('Insira o número do incidente:');
-        if (!incidenteId) return;
+        if (!incidenteId) return false;
         document.getElementById('incidenteId').value = incidenteId;
     }
 
+    // Solicitar nome do usuário com validação
+    let nomeUsuario = localStorage.getItem('nomeUsuario') || '';
+    while (true) {
+        nomeUsuario = prompt('Insira seu nome (mínimo 4 caracteres, sem números):', nomeUsuario);
+        if (!nomeUsuario) return false;
+
+        // Validação: mínimo 4 caracteres, sem números
+        if (nomeUsuario.length < 4) {
+            alert('❌ O nome deve ter no mínimo 4 caracteres.');
+            continue;
+        }
+        if (/\d/.test(nomeUsuario)) {
+            alert('❌ O nome não pode conter números.');
+            continue;
+        }
+        // Nome válido
+        localStorage.setItem('nomeUsuario', nomeUsuario);
+        break;
+    }
+
     const dados = coletarDadosFormulario(tipoMensagem);
-    if (!dados) return;
+    if (!dados) return false;
 
     try {
         await jsonBinService.salvarIncidente(incidenteId, tipoMensagem, dados);
         incidenteAtual = incidenteId;
+        // Marcar que o incidente foi salvo
+        window.incidenteSalvo = true;
         await atualizarListaIncidentes();
         alert('✅ Incidente ' + incidenteId + ' salvo e COMPARTILHADO com todos os usuários!');
 
         // Carregar automaticamente o incidente que acabou de ser salvo (modo silencioso)
         await carregarIncidentePorId(incidenteId, true);
+        return true;
     } catch (error) {
         alert('⚠️ Incidente salvo localmente (sem compartilhamento)');
+        window.incidenteSalvo = true;
+        return true;
     }
 }
 
@@ -261,6 +286,9 @@ function coletarDadosFormulario(tipo) {
  * Limpa todos os formulários
  */
 function limparFormularios() {
+    // Resetar flag de incidente salvo
+    window.incidenteSalvo = false;
+
     // Formulário de Rompimento
     document.getElementById('topologia').value = '';
     document.getElementById('incidente').value = '';
@@ -323,6 +351,8 @@ function atualizarCamposStatusManobra() {
         statusCampos.innerHTML = getHtmlStatusInicialManobra();
     } else if (tipo === 'atualizacao') {
         statusCampos.innerHTML = getHtmlStatusAtualizacaoManobra();
+    } else if (tipo === 'estouroManobra') {
+        statusCampos.innerHTML = getHtmlStatusEstouroManobra();
     } else if (tipo === 'encerramento') {
         statusCampos.innerHTML = getHtmlStatusEncerramentoManobra();
     }
@@ -349,6 +379,11 @@ function getHtmlStatusInicial() {
         <div class="form-group">
             <label>Escalonamento?</label>
             <div class="checkbox-group">
+                <div class="checkbox-option">
+                    <input type="checkbox" id="esc_nao_escalonado" onchange="toggleNaoEscalonado()">
+                    <label for="esc_nao_escalonado">Não escalonado</label>
+                </div>
+
                 <div class="checkbox-option">
                     <input type="checkbox" id="esc_ponto_focal" onchange="toggleEscalonamentoInput('ponto_focal')">
                     <label for="esc_ponto_focal">Ponto Focal</label>
@@ -404,52 +439,65 @@ function getHtmlStatusInicial() {
             </div>
             <div id="campoEquipe" class="conditional-field hidden"></div>
         </div>
+
+        <div class="form-group">
+            <label for="outrasObservacoes">Outras Observações:</label>
+            <textarea id="outrasObservacoes" rows="3" placeholder="Digite aqui outras observações relevantes..."></textarea>
+        </div>
     `;
 }
 
 function getHtmlStatusAtualizacao() {
     return `
         <div class="form-group">
-            <label for="enderecoDano">Endereço do Dano:</label>
-            <input type="text" id="enderecoDano">
-        </div>
-        <div class="form-group">
-            <label for="causaDano">Causa do Dano:</label>
-            <input type="text" id="causaDano">
-        </div>
-        <div class="form-group">
-            <label for="cabosAfetados">Cabos Afetados:</label>
-            <input type="text" id="cabosAfetados">
-        </div>
-        <div class="form-group">
-            <label>Equipe percorrendo rota?</label>
-            <div class="radio-group">
-                <div class="radio-option">
-                    <input type="radio" id="percorrendo_sim" name="percorrendo" value="sim">
-                    <label for="percorrendo_sim">Sim</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="percorrendo_nao" name="percorrendo" value="nao">
-                    <label for="percorrendo_nao">Não</label>
-                </div>
+            <div class="checkbox-option">
+                <input type="checkbox" id="novaAtualizacaoCheck" onchange="toggleNovaAtualizacao()">
+                <label for="novaAtualizacaoCheck"><strong>Nova atualização (texto livre)</strong></label>
             </div>
         </div>
-        <div class="form-group">
-            <label>Equipe avaliando infra?</label>
-            <div class="radio-group">
-                <div class="radio-option">
-                    <input type="radio" id="avaliando_sim" name="avaliando" value="sim">
-                    <label for="avaliando_sim">Sim</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="avaliando_nao" name="avaliando" value="nao">
-                    <label for="avaliando_nao">Não</label>
+        <div id="camposAtualizacaoNormal">
+            <div class="form-group">
+                <label for="enderecoDano">Endereço do Dano:</label>
+                <input type="text" id="enderecoDano">
+            </div>
+            <div class="form-group">
+                <label for="causaDano">Causa do Dano:</label>
+                <input type="text" id="causaDano">
+            </div>
+            <div class="form-group">
+                <label for="cabosAfetados">Cabos Afetados:</label>
+                <input type="text" id="cabosAfetados">
+            </div>
+            <div class="form-group">
+                <label>Equipe percorrendo rota?</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="percorrendo_sim" name="percorrendo" value="sim">
+                        <label for="percorrendo_sim">Sim</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="percorrendo_nao" name="percorrendo" value="nao">
+                        <label for="percorrendo_nao">Não</label>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="validado">Percentual de Nodes Normalizados (%):</label>
-            <input type="text" id="validado">
+            <div class="form-group">
+                <label>Equipe avaliando infra?</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="avaliando_sim" name="avaliando" value="sim">
+                        <label for="avaliando_sim">Sim</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="avaliando_nao" name="avaliando" value="nao">
+                        <label for="avaliando_nao">Não</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="validado">Percentual de Nodes Normalizados (%):</label>
+                <input type="text" id="validado">
+            </div>
         </div>
         <div class="form-group">
             <label for="novaAtualizacao">Nova Atualização:</label>
@@ -543,9 +591,33 @@ function toggleEscalonamentoInput(tipo) {
 
     if (checkbox.checked) {
         input.classList.remove('hidden');
+        // Desmarcar "Não escalonado" se algum escalonamento for marcado
+        const naoEscalonado = document.getElementById('esc_nao_escalonado');
+        if (naoEscalonado) {
+            naoEscalonado.checked = false;
+        }
     } else {
         input.classList.add('hidden');
         input.value = '';
+    }
+}
+
+function toggleNaoEscalonado() {
+    const naoEscalonado = document.getElementById('esc_nao_escalonado');
+    if (naoEscalonado && naoEscalonado.checked) {
+        // Desmarcar todas as outras opções de escalonamento
+        const tipos = ['ponto_focal', 'supervisor', 'coordenador', 'gerente'];
+        tipos.forEach(tipo => {
+            const checkbox = document.getElementById(`esc_${tipo}`);
+            const input = document.getElementById(`esc_${tipo}_nome`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            if (input) {
+                input.classList.add('hidden');
+                input.value = '';
+            }
+        });
     }
 }
 
@@ -586,6 +658,80 @@ function mostrarCampoEquipe() {
     } else {
         campoEquipe.classList.add('hidden');
     }
+}
+
+function toggleNovaAtualizacao() {
+    const checkbox = document.getElementById('novaAtualizacaoCheck');
+    const camposNormais = document.getElementById('camposAtualizacaoNormal');
+
+    if (checkbox && camposNormais) {
+        if (checkbox.checked) {
+            // Desabilitar todos os campos dentro de camposAtualizacaoNormal
+            camposNormais.style.opacity = '0.5';
+            camposNormais.style.pointerEvents = 'none';
+            const inputs = camposNormais.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+        } else {
+            // Habilitar todos os campos
+            camposNormais.style.opacity = '1';
+            camposNormais.style.pointerEvents = 'auto';
+            const inputs = camposNormais.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+        }
+    }
+}
+
+function getHtmlStatusEstouroManobra() {
+    return `
+        <div class="form-group">
+            <label for="motivoEstouro">Motivo:</label>
+            <input type="text" id="motivoEstouro">
+        </div>
+        <div class="form-group">
+            <label for="ticketEstouro">Ticket (Manobra):</label>
+            <input type="text" id="ticketEstouro">
+        </div>
+        <div class="form-group">
+            <label for="incidenteEstouro">Incidente (Outage):</label>
+            <input type="text" id="incidenteEstouro">
+        </div>
+        <div class="form-group">
+            <label for="horarioInicioEstouro">Horário de Início:</label>
+            <input type="text" id="horarioInicioEstouro" placeholder="dd/mm/aaaa hh:mm">
+        </div>
+        <div class="form-group">
+            <label for="cidadeEstouro">Cidade:</label>
+            <input type="text" id="cidadeEstouro">
+        </div>
+        <div class="form-group">
+            <label for="distritoEstouro">Distrito / Rota ou Anel:</label>
+            <input type="text" id="distritoEstouro">
+        </div>
+        <div class="form-group">
+            <label for="impactoEstouro">Impacto:</label>
+            <input type="text" id="impactoEstouro">
+        </div>
+        <div class="form-group">
+            <label for="baseEstouro">Base Impactada:</label>
+            <input type="text" id="baseEstouro" placeholder="Apenas números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+        <div class="form-group">
+            <label for="enderecoEstouro">Endereço:</label>
+            <input type="text" id="enderecoEstouro">
+        </div>
+        <div class="form-group">
+            <label for="statusEstouro">Status:</label>
+            <input type="text" id="statusEstouro">
+        </div>
+        <div class="form-group">
+            <label for="horarioFechamentoEstouro">Horário de Fechamento:</label>
+            <input type="text" id="horarioFechamentoEstouro" placeholder="dd/mm/aaaa hh:mm">
+        </div>
+    `;
 }
 
 // ===== CONTINUA NO PRÓXIMO ARQUIVO =====

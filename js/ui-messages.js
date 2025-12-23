@@ -7,6 +7,12 @@
 async function gerarMensagem() {
     console.log('🚀 FUNÇÃO gerarMensagem() INICIADA');
 
+    // Verificar se o incidente foi salvo
+    if (!window.incidenteSalvo) {
+        alert('❌ É obrigatório SALVAR o incidente antes de gerar a mensagem.\nClique em "Salvar Incidente" primeiro.');
+        return;
+    }
+
     const topologia = document.getElementById('topologia').value;
     if (!topologia) {
         alert('Por favor, selecione o tipo de topologia');
@@ -111,26 +117,33 @@ function gerarConteudoStatusInicial() {
         statusInfo.push('EQUIPE FO ACIONADA');
     }
 
-    const escalonamentos = [];
-    if (document.getElementById('esc_ponto_focal')?.checked) {
-        const nome = document.getElementById('esc_ponto_focal_nome')?.value.toUpperCase() || '';
-        escalonamentos.push(nome ? `PONTO FOCAL ${nome}` : 'PONTO FOCAL');
-    }
-    if (document.getElementById('esc_supervisor')?.checked) {
-        const nome = document.getElementById('esc_supervisor_nome')?.value.toUpperCase() || '';
-        escalonamentos.push(nome ? `SUPERVISOR ${nome}` : 'SUPERVISOR');
-    }
-    if (document.getElementById('esc_coordenador')?.checked) {
-        const nome = document.getElementById('esc_coordenador_nome')?.value.toUpperCase() || '';
-        escalonamentos.push(nome ? `COORDENADOR ${nome}` : 'COORDENADOR');
-    }
-    if (document.getElementById('esc_gerente')?.checked) {
-        const nome = document.getElementById('esc_gerente_nome')?.value.toUpperCase() || '';
-        escalonamentos.push(nome ? `GERENTE ${nome}` : 'GERENTE');
-    }
+    // Verificar "Não escalonado"
+    const naoEscalonado = document.getElementById('esc_nao_escalonado');
+    if (naoEscalonado && naoEscalonado.checked) {
+        statusInfo.push('NÃO ESCALONADO');
+    } else {
+        // Verificar escalonamentos individuais
+        const escalonamentos = [];
+        if (document.getElementById('esc_ponto_focal')?.checked) {
+            const nome = document.getElementById('esc_ponto_focal_nome')?.value.toUpperCase() || '';
+            escalonamentos.push(nome ? `PONTO FOCAL ${nome}` : 'PONTO FOCAL');
+        }
+        if (document.getElementById('esc_supervisor')?.checked) {
+            const nome = document.getElementById('esc_supervisor_nome')?.value.toUpperCase() || '';
+            escalonamentos.push(nome ? `SUPERVISOR ${nome}` : 'SUPERVISOR');
+        }
+        if (document.getElementById('esc_coordenador')?.checked) {
+            const nome = document.getElementById('esc_coordenador_nome')?.value.toUpperCase() || '';
+            escalonamentos.push(nome ? `COORDENADOR ${nome}` : 'COORDENADOR');
+        }
+        if (document.getElementById('esc_gerente')?.checked) {
+            const nome = document.getElementById('esc_gerente_nome')?.value.toUpperCase() || '';
+            escalonamentos.push(nome ? `GERENTE ${nome}` : 'GERENTE');
+        }
 
-    if (escalonamentos.length > 0) {
-        statusInfo.push(`ESCALONADO: ${escalonamentos.join(', ')}`);
+        if (escalonamentos.length > 0) {
+            statusInfo.push(`ESCALONADO: ${escalonamentos.join(', ')}`);
+        }
     }
 
     if (scan && scan.value === 'sim') {
@@ -141,6 +154,12 @@ function gerarConteudoStatusInicial() {
     if (equipe && equipe.value === 'sim') {
         const motivo = document.getElementById('motivoEquipe')?.value || '';
         statusInfo.push(`INCIDENTE AOS CUIDADOS DA EQUIPE DA MANHÃ. MOTIVO: ${motivo}`);
+    }
+
+    // Outras observações
+    const outrasObservacoes = document.getElementById('outrasObservacoes')?.value.toUpperCase().trim() || '';
+    if (outrasObservacoes) {
+        statusInfo.push(outrasObservacoes);
     }
 
     if (statusInfo.length > 0) {
@@ -206,6 +225,12 @@ function gerarConteudoStatusEncerramento() {
 
 async function gerarMensagemManobra() {
     console.log('🚀 FUNÇÃO gerarMensagemManobra() INICIADA');
+
+    // Verificar se o incidente foi salvo
+    if (!window.incidenteSalvo) {
+        alert('❌ É obrigatório SALVAR o incidente antes de gerar a mensagem.\nClique em "Salvar Incidente" primeiro.');
+        return;
+    }
 
     const topologiaManobra = document.getElementById('topologiaManobra').value;
     if (!topologiaManobra) {
@@ -273,6 +298,20 @@ async function gerarMensagemManobra() {
         if (atualizacao) {
             msg += `${atualizacao}\n`;
         }
+    } else if (tipoStatus === 'estouroManobra') {
+        // Gerar mensagem de Estouro de Manobra com formato específico
+        msg = `## ESTOURO DE MANOBRA\n`;
+        msg += `## MOTIVO: ${get('motivoEstouro')}\n`;
+        msg += `## TICKET (MANOBRA): ${get('ticketEstouro')}\n`;
+        msg += `## INCIDENTE (OUTAGE): ${get('incidenteEstouro')}\n`;
+        msg += `## HORÁRIO DE INÍCIO: ${get('horarioInicioEstouro')}\n`;
+        msg += `## CIDADE: ${get('cidadeEstouro')}\n`;
+        msg += `## DISTRITO / ROTA OU ANEL: ${get('distritoEstouro')}\n`;
+        msg += `## IMPACTO: ${get('impactoEstouro')}\n`;
+        msg += `## BASE IMPACTADA: ${get('baseEstouro')}\n`;
+        msg += `## ENDEREÇO: ${get('enderecoEstouro')}\n`;
+        msg += `## STATUS: ${get('statusEstouro')}\n`;
+        msg += `## HORÁRIO DE FECHAMENTO: ${get('horarioFechamentoEstouro')}\n`;
     } else if (tipoStatus === 'encerramento') {
         msg += `## DATA E HORA DE ENCERRAMENTO: ${get('encerramentoManobra')}\n`;
         msg += `FATO: ${get('fatoManobra')}\n`;
@@ -551,7 +590,13 @@ function fecharPopupMensagem() {
 
 // ===== INICIALIZAÇÃO =====
 
+// Inicializar flag de incidente salvo
+window.incidenteSalvo = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar flag de incidente salvo
+    window.incidenteSalvo = false;
+
     // Atualizar lista de incidentes ao carregar
     atualizarListaIncidentes();
 
