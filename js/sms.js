@@ -148,7 +148,7 @@ class NotificationService {
                 throw new Error(result.error);
             }
 
-            console.log('✅ Mensagem WhatsApp enviada com sucesso!', result);
+            console.log('✅ Mensagem WhatsApp enviada com sucesso!', JSON.stringify(result, null, 2));
 
             return {
                 success: true,
