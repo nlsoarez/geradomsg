@@ -372,7 +372,7 @@ function atualizarCamposStatusManobra() {
 function getHtmlStatusInicial() {
     return `
         <div class="form-group-inline">
-            <label>Incidente acionado?</label>
+            <label>Incidente acionado:</label>
             <div class="radio-group inline">
                 <div class="radio-option">
                     <input type="radio" id="acionado_sim" name="acionado" value="sim" onchange="mostrarCampoAcionado()">
@@ -390,7 +390,7 @@ function getHtmlStatusInicial() {
         </div>
 
         <div class="form-group-inline">
-            <label>Scan realizado?</label>
+            <label>Scan realizado:</label>
             <div class="radio-group inline">
                 <div class="radio-option">
                     <input type="radio" id="scan_sim" name="scan" value="sim" onchange="mostrarCampoScan()">
@@ -403,6 +403,21 @@ function getHtmlStatusInicial() {
             </div>
         </div>
         <div id="campoScan" class="motivo-field hidden"></div>
+
+        <div class="form-group-inline">
+            <label>Incidente reagendado:</label>
+            <div class="radio-group inline">
+                <div class="radio-option">
+                    <input type="radio" id="equipe_sim" name="equipe" value="sim" onchange="mostrarCampoEquipe()">
+                    <label for="equipe_sim">Sim</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="equipe_nao" name="equipe" value="nao" onchange="mostrarCampoEquipe()">
+                    <label for="equipe_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        <div id="campoEquipe" class="motivo-field hidden"></div>
 
         <div class="form-group">
             <label>Escalonamento:</label>
@@ -448,21 +463,6 @@ function getHtmlStatusInicial() {
             </div>
         </div>
 
-        <div class="form-group-inline">
-            <label>Incidente reagendado?</label>
-            <div class="radio-group inline">
-                <div class="radio-option">
-                    <input type="radio" id="equipe_sim" name="equipe" value="sim" onchange="mostrarCampoEquipe()">
-                    <label for="equipe_sim">Sim</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="equipe_nao" name="equipe" value="nao" onchange="mostrarCampoEquipe()">
-                    <label for="equipe_nao">Não</label>
-                </div>
-            </div>
-        </div>
-        <div id="campoEquipe" class="motivo-field hidden"></div>
-
         <div class="form-group">
             <label for="outrasObservacoes">Outras observações:</label>
             <textarea id="outrasObservacoes" rows="3"></textarea>
@@ -475,12 +475,12 @@ function getHtmlStatusAtualizacao() {
         <div class="form-group">
             <div class="checkbox-option">
                 <input type="checkbox" id="novaAtualizacaoCheck" onchange="toggleNovaAtualizacao()">
-                <label for="novaAtualizacaoCheck"><strong>Nova atualização (texto livre)</strong></label>
+                <label for="novaAtualizacaoCheck"><strong>Nova atualização</strong></label>
             </div>
         </div>
         <div id="campoNovaAtualizacao" class="hidden">
             <div class="form-group">
-                <label for="novaAtualizacao">Nova Atualização:</label>
+                <label for="novaAtualizacao">Nova atualização:</label>
                 <textarea id="novaAtualizacao" rows="4" placeholder="Digite aqui informações adicionais sobre a atualização..."></textarea>
             </div>
         </div>
@@ -498,7 +498,7 @@ function getHtmlStatusAtualizacao() {
                 <input type="text" id="cabosAfetados">
             </div>
             <div class="form-group-inline">
-                <label>Equipe percorrendo rota?</label>
+                <label>Equipe percorrendo rota:</label>
                 <div class="radio-group inline">
                     <div class="radio-option">
                         <input type="radio" id="percorrendo_sim" name="percorrendo" value="sim">
@@ -511,7 +511,7 @@ function getHtmlStatusAtualizacao() {
                 </div>
             </div>
             <div class="form-group-inline">
-                <label>Equipe avaliando infra?</label>
+                <label>Equipe avaliando infra:</label>
                 <div class="radio-group inline">
                     <div class="radio-option">
                         <input type="radio" id="avaliando_sim" name="avaliando" value="sim">
@@ -523,9 +523,12 @@ function getHtmlStatusAtualizacao() {
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="validado">Percentual de nodes normalizados (%):</label>
-                <input type="text" id="validado">
+            <div class="form-row-two">
+                <div class="form-group">
+                    <label for="validado">Percentual de nodes normalizados (%):</label>
+                    <input type="text" id="validado">
+                </div>
+                <div class="form-group"></div>
             </div>
         </div>
     `;
@@ -561,7 +564,7 @@ function getHtmlStatusEncerramento() {
 function getHtmlStatusInicialManobra() {
     return `
         <div class="form-group-inline">
-            <label>Manobra iniciada?</label>
+            <label>Manobra iniciada:</label>
             <div class="radio-group inline">
                 <div class="radio-option">
                     <input type="radio" id="manobra_iniciada_sim" name="manobra_iniciada" value="sim" onchange="mostrarCampoManobraIniciada()">
@@ -582,9 +585,12 @@ function getHtmlStatusInicialManobra() {
 
 function getHtmlStatusAtualizacaoManobra() {
     return `
-        <div class="form-group">
-            <label for="validadoManobra">Percentual de Nodes Normalizados (%):</label>
-            <input type="text" id="validadoManobra">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="validadoManobra">Percentual de nodes normalizados (%):</label>
+                <input type="text" id="validadoManobra">
+            </div>
+            <div class="form-group"></div>
         </div>
         <div class="form-group">
             <label for="atualizacaoManobra">Atualização:</label>
@@ -595,11 +601,14 @@ function getHtmlStatusAtualizacaoManobra() {
 
 function getHtmlStatusEncerramentoManobra() {
     return `
-        <div class="form-group">
-            <label for="encerramentoManobra">Data e hora de encerramento:</label>
-            <input type="text" id="encerramentoManobra" placeholder="dd/mm/aaaa hh:mm">
-            <div class="date-format">Formato obrigatório: dd/mm/aaaa hh:mm</div>
-            <div class="error-message" id="encerramentoManobra-error">Formato incorreto. Use: dd/mm/aaaa hh:mm</div>
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="encerramentoManobra">Data e hora de encerramento:</label>
+                <input type="text" id="encerramentoManobra" placeholder="dd/mm/aaaa hh:mm">
+                <div class="date-format">Formato obrigatório: dd/mm/aaaa hh:mm</div>
+                <div class="error-message" id="encerramentoManobra-error">Formato incorreto. Use: dd/mm/aaaa hh:mm</div>
+            </div>
+            <div class="form-group"></div>
         </div>
         <div class="form-row-fca">
             <div class="form-group-half">
