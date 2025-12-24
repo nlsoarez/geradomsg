@@ -133,12 +133,10 @@ function gerarConteudoStatusInicial() {
         statusInfo.push(`EFETUADO SCAN: ${metragem}`);
     }
 
-    // Verificar "Não escalonado"
+    // Verificar "Não escalonado" - se marcado, não gera nada na mensagem
     const naoEscalonado = document.getElementById('esc_nao_escalonado');
-    if (naoEscalonado && naoEscalonado.checked) {
-        statusInfo.push('NÃO ESCALONADO');
-    } else {
-        // Verificar escalonamentos individuais
+    if (!naoEscalonado || !naoEscalonado.checked) {
+        // Verificar escalonamentos individuais (apenas se "Não escalonado" não estiver marcado)
         const escalonamentos = [];
         if (document.getElementById('esc_ponto_focal')?.checked) {
             const nome = document.getElementById('esc_ponto_focal_nome')?.value.toUpperCase() || '';
@@ -329,14 +327,14 @@ async function gerarMensagemManobra() {
         msg += `## MOTIVO: ${get('motivoEstouro')}\n`;
         msg += `## TICKET (MANOBRA): ${get('ticketEstouro')}\n`;
         msg += `## INCIDENTE (OUTAGE): ${get('incidenteEstouro')}\n`;
-        msg += `## HORÁRIO DE INÍCIO: ${get('horarioInicioEstouro')}\n`;
+        msg += `## DATA/HORA DE INÍCIO: ${get('horarioInicioEstouro')}\n`;
         msg += `## CIDADE: ${get('cidadeEstouro')}\n`;
         msg += `## DISTRITO / ROTA OU ANEL: ${get('distritoEstouro')}\n`;
         msg += `## IMPACTO: ${get('impactoEstouro')}\n`;
         msg += `## BASE IMPACTADA: ${get('baseEstouro')}\n`;
         msg += `## ENDEREÇO: ${get('enderecoEstouro')}\n`;
         msg += `## STATUS: ${get('statusEstouro')}\n`;
-        msg += `## HORÁRIO DE FECHAMENTO: ${get('horarioFechamentoEstouro')}\n`;
+        msg += `## DATA/HORA DE FECHAMENTO: ${get('horarioFechamentoEstouro')}\n`;
     } else if (tipoStatus === 'encerramento') {
         msg += `## DATA E HORA DE ENCERRAMENTO: ${get('encerramentoManobra')}\n`;
         msg += `FATO: ${get('fatoManobra')}\n`;
