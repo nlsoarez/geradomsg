@@ -405,15 +405,8 @@ function getHtmlStatusInicial() {
         <div id="campoScan" class="motivo-field hidden"></div>
 
         <div class="form-group">
-            <label>Escalonamento?</label>
+            <label>Escalonamento:</label>
             <div class="checkbox-group inline">
-                <div class="escalonamento-container">
-                    <div class="checkbox-option">
-                        <input type="checkbox" id="esc_nao_escalonado" onchange="toggleNaoEscalonado()">
-                        <label for="esc_nao_escalonado">Não escalonado</label>
-                    </div>
-                </div>
-
                 <div class="escalonamento-container">
                     <div class="checkbox-option">
                         <input type="checkbox" id="esc_ponto_focal" onchange="toggleEscalonamentoInput('ponto_focal')">
@@ -444,6 +437,13 @@ function getHtmlStatusInicial() {
                         <label for="esc_gerente">Gerente</label>
                     </div>
                     <input type="text" id="esc_gerente_nome" class="escalonamento-input hidden" placeholder="Inserir nome" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                </div>
+
+                <div class="escalonamento-container">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="esc_nao_escalonado" onchange="toggleNaoEscalonado()">
+                        <label for="esc_nao_escalonado">Não escalonado</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -486,20 +486,20 @@ function getHtmlStatusAtualizacao() {
         </div>
         <div id="camposAtualizacaoNormal">
             <div class="form-group">
-                <label for="enderecoDano">Endereço do Dano:</label>
+                <label for="enderecoDano">Endereço do dano:</label>
                 <input type="text" id="enderecoDano">
             </div>
             <div class="form-group">
-                <label for="causaDano">Causa do Dano:</label>
+                <label for="causaDano">Causa do dano:</label>
                 <input type="text" id="causaDano">
             </div>
             <div class="form-group">
-                <label for="cabosAfetados">Cabos Afetados:</label>
+                <label for="cabosAfetados">Cabos afetados:</label>
                 <input type="text" id="cabosAfetados">
             </div>
-            <div class="form-group">
+            <div class="form-group-inline">
                 <label>Equipe percorrendo rota?</label>
-                <div class="radio-group">
+                <div class="radio-group inline">
                     <div class="radio-option">
                         <input type="radio" id="percorrendo_sim" name="percorrendo" value="sim">
                         <label for="percorrendo_sim">Sim</label>
@@ -510,9 +510,9 @@ function getHtmlStatusAtualizacao() {
                     </div>
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group-inline">
                 <label>Equipe avaliando infra?</label>
-                <div class="radio-group">
+                <div class="radio-group inline">
                     <div class="radio-option">
                         <input type="radio" id="avaliando_sim" name="avaliando" value="sim">
                         <label for="avaliando_sim">Sim</label>
@@ -524,7 +524,7 @@ function getHtmlStatusAtualizacao() {
                 </div>
             </div>
             <div class="form-group">
-                <label for="validado">Percentual de Nodes Normalizados (%):</label>
+                <label for="validado">Percentual de nodes normalizados (%):</label>
                 <input type="text" id="validado">
             </div>
         </div>
@@ -596,22 +596,26 @@ function getHtmlStatusAtualizacaoManobra() {
 function getHtmlStatusEncerramentoManobra() {
     return `
         <div class="form-group">
-            <label for="encerramentoManobra">Data e Hora de Encerramento:</label>
+            <label for="encerramentoManobra">Data e hora de encerramento:</label>
             <input type="text" id="encerramentoManobra" placeholder="dd/mm/aaaa hh:mm">
             <div class="date-format">Formato obrigatório: dd/mm/aaaa hh:mm</div>
             <div class="error-message" id="encerramentoManobra-error">Formato incorreto. Use: dd/mm/aaaa hh:mm</div>
         </div>
-        <div class="form-group">
-            <label for="fatoManobra">FATO:</label>
-            <textarea id="fatoManobra" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="causaManobra">CAUSA:</label>
-            <textarea id="causaManobra" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="acaoManobra">AÇÃO:</label>
-            <textarea id="acaoManobra" rows="3"></textarea>
+        <div class="form-row-fca">
+            <div class="form-group-half">
+                <div class="form-group">
+                    <label for="fatoManobra">Fato:</label>
+                    <textarea id="fatoManobra" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="causaManobra">Causa:</label>
+                    <textarea id="causaManobra" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="acaoManobra">Ação:</label>
+                <textarea id="acaoManobra" rows="5"></textarea>
+            </div>
         </div>
     `;
 }
@@ -753,49 +757,62 @@ function toggleNovaAtualizacao() {
 
 function getHtmlStatusEstouroManobra() {
     return `
-        <div class="form-group">
-            <label for="motivoEstouro">Motivo:</label>
-            <input type="text" id="motivoEstouro">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="motivoEstouro">Motivo:</label>
+                <input type="text" id="motivoEstouro">
+            </div>
+            <div class="form-group">
+                <label for="horarioInicioEstouro">Data/hora de início:</label>
+                <input type="text" id="horarioInicioEstouro">
+            </div>
         </div>
-        <div class="form-group">
-            <label for="ticketEstouro">Ticket (Manobra):</label>
-            <input type="text" id="ticketEstouro">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="ticketEstouro">Ticket (Manobra):</label>
+                <input type="text" id="ticketEstouro">
+            </div>
+            <div class="form-group">
+                <label for="incidenteEstouro">Incidente (Outage):</label>
+                <input type="text" id="incidenteEstouro">
+            </div>
         </div>
-        <div class="form-group">
-            <label for="incidenteEstouro">Incidente (Outage):</label>
-            <input type="text" id="incidenteEstouro">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="cidadeEstouro">Cidade:</label>
+                <input type="text" id="cidadeEstouro">
+            </div>
+            <div class="form-group">
+                <label for="distritoEstouro">Distrito / Rota ou Anel:</label>
+                <input type="text" id="distritoEstouro">
+            </div>
         </div>
-        <div class="form-group">
-            <label for="horarioInicioEstouro">Horário de Início:</label>
-            <input type="text" id="horarioInicioEstouro" placeholder="dd/mm/aaaa hh:mm">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="impactoEstouro">Impacto:</label>
+                <input type="text" id="impactoEstouro">
+            </div>
+            <div class="form-group">
+                <label for="baseEstouro">Base impactada:</label>
+                <input type="text" id="baseEstouro" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
         </div>
-        <div class="form-group">
-            <label for="cidadeEstouro">Cidade:</label>
-            <input type="text" id="cidadeEstouro">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="enderecoEstouro">Endereço:</label>
+                <textarea id="enderecoEstouro" class="adjustable" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="statusEstouro">Status:</label>
+                <textarea id="statusEstouro" class="adjustable" rows="2"></textarea>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="distritoEstouro">Distrito / Rota ou Anel:</label>
-            <input type="text" id="distritoEstouro">
-        </div>
-        <div class="form-group">
-            <label for="impactoEstouro">Impacto:</label>
-            <input type="text" id="impactoEstouro">
-        </div>
-        <div class="form-group">
-            <label for="baseEstouro">Base Impactada:</label>
-            <input type="text" id="baseEstouro" placeholder="Apenas números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        </div>
-        <div class="form-group">
-            <label for="enderecoEstouro">Endereço:</label>
-            <input type="text" id="enderecoEstouro">
-        </div>
-        <div class="form-group">
-            <label for="statusEstouro">Status:</label>
-            <input type="text" id="statusEstouro">
-        </div>
-        <div class="form-group">
-            <label for="horarioFechamentoEstouro">Horário de Fechamento:</label>
-            <input type="text" id="horarioFechamentoEstouro" placeholder="dd/mm/aaaa hh:mm">
+        <div class="form-row-two">
+            <div class="form-group">
+                <label for="horarioFechamentoEstouro">Data/hora de fechamento:</label>
+                <input type="text" id="horarioFechamentoEstouro">
+            </div>
+            <div class="form-group"></div>
         </div>
     `;
 }
